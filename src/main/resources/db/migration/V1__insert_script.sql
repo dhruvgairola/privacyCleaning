@@ -1,0 +1,12 @@
+insert into employee(id, employee_id, appraisal, business_experience, compensation, designation, employee_bonus) values(1, 00010, 'EXCELLENT', 10, 120000, 'MANAGER_1', 12000);
+insert into employee(id, employee_id, appraisal, business_experience, compensation, designation, employee_bonus) values(2, 00011, 'POOR', 10, 80000, 'MANAGER_1', 8000);
+insert into employee(id, employee_id, appraisal, business_experience, compensation, designation, employee_bonus) values(3, 00012, 'GOOD', 8, 80000, 'ANALYST_1', 8000);
+insert into employee(id, employee_id, appraisal, business_experience, compensation, designation, employee_bonus) values(4, 00013, 'GOOD', 10, 100000, 'MANAGER_1', 10000);
+insert into employee(id, employee_id, appraisal, business_experience, compensation, designation, employee_bonus) values(5, 00014, 'GOOD', 10, 100000, 'MANAGER_1', 10000);
+insert into employee(id, employee_id, appraisal, business_experience, compensation, designation, employee_bonus) values(6, 00015, 'GOOD', 10, 100000, 'MANAGER_1', 10000);
+insert into employee(id, employee_id, appraisal, business_experience, compensation, designation, employee_bonus) values(7, 00016, 'GOOD', 10, 100000, 'MANAGER_1', 10000);
+insert into employee(id, employee_id, appraisal, business_experience, compensation, designation, employee_bonus) values(8, 00017, 'GOOD', 10, 100000, 'MANAGER_1', 20000);
+insert into employee(id, employee_id, appraisal, business_experience, compensation, designation, employee_bonus) values(9, 00018, 'GOOD', 10, 85000, 'MANAGER_3', 10000);
+insert into employee(id, employee_id, appraisal, business_experience, compensation, designation, employee_bonus) values(10, 00019, 'GOOD', 10, 90000, 'MANAGER_1', 11000);
+insert into employee(id, employee_id, appraisal, business_experience, compensation, designation, employee_bonus) values(11, 00020, 'GOOD', 10, 90000, 'MANAGER_4', 10000);
+insert into employee(id, employee_id, appraisal, business_experience, compensation, designation, employee_bonus) values(12, 00021, 'GOOD', 10, 90000, 'MANAGER_1', 11000);
