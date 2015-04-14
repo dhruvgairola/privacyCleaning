@@ -81,7 +81,7 @@ public class PRepairServiceTests extends DataCleaningTests {
 		for (float sim : simThresholds) {
 			simThreshold = sim;
 			logger.log(ProdLevel.PROD, "Books simThreshold : " + simThreshold);
-			runProtocol(SearchType.SA_WEIGHTED, false);
+			runProtocol(SearchType.SA_WEIGHTED);
 		}
 	}
 
@@ -91,7 +91,7 @@ public class PRepairServiceTests extends DataCleaningTests {
 		for (float sim : simThresholds) {
 			simThreshold = sim;
 			logger.log(ProdLevel.PROD, "Books simThreshold : " + simThreshold);
-			runProtocol(SearchType.SA_EPS_DYNAMIC, false);
+			runProtocol(SearchType.SA_EPS_DYNAMIC);
 		}
 	}
 
@@ -100,7 +100,7 @@ public class PRepairServiceTests extends DataCleaningTests {
 		for (float sim : simThresholds) {
 			simThreshold = sim;
 			logger.log(ProdLevel.PROD, "Books simThreshold : " + simThreshold);
-			runProtocol(SearchType.SA_EPS_FLEX, false);
+			runProtocol(SearchType.SA_EPS_FLEX);
 		}
 	}
 
@@ -109,28 +109,28 @@ public class PRepairServiceTests extends DataCleaningTests {
 		for (float sim : simThresholds) {
 			simThreshold = sim;
 			logger.log(ProdLevel.PROD, "Books simThreshold : " + simThreshold);
-			runProtocol(SearchType.SA_EPS_LEX, false);
+			runProtocol(SearchType.SA_EPS_LEX);
 		}
 	}
 
 	@Test
 	public void testErrRateSimulAnnealWeighted() throws Exception {
-		runProtocol(SearchType.SA_WEIGHTED, false);
+		runProtocol(SearchType.SA_WEIGHTED);
 	}
 
 	@Test
 	public void testErrRateSimulAnnealEpsDynamic() throws Exception {
-		runProtocol(SearchType.SA_EPS_DYNAMIC, false);
+		runProtocol(SearchType.SA_EPS_DYNAMIC);
 	}
 
 	@Test
 	public void testErrRateSimulAnnealEpsFlexi() throws Exception {
-		runProtocol(SearchType.SA_EPS_FLEX, false);
+		runProtocol(SearchType.SA_EPS_FLEX);
 	}
 
 	@Test
 	public void testErrRateSimulAnnealEpsLex() throws Exception {
-		runProtocol(SearchType.SA_EPS_LEX, false);
+		runProtocol(SearchType.SA_EPS_LEX);
 	}
 
 	@Test
@@ -152,7 +152,7 @@ public class PRepairServiceTests extends DataCleaningTests {
 
 			logger.log(ProdLevel.PROD, "Books URL : " + origUrl);
 
-			runProtocol(SearchType.SA_EPS_FLEX, false);
+			runProtocol(SearchType.SA_EPS_FLEX);
 		}
 
 	}
@@ -176,7 +176,7 @@ public class PRepairServiceTests extends DataCleaningTests {
 
 			logger.log(ProdLevel.PROD, "Books URL : " + origUrl);
 
-			runProtocol(SearchType.SA_EPS_LEX, false);
+			runProtocol(SearchType.SA_EPS_LEX);
 		}
 
 	}
@@ -205,7 +205,7 @@ public class PRepairServiceTests extends DataCleaningTests {
 
 			logger.log(ProdLevel.PROD, "Books URL : " + origUrl);
 
-			runProtocol(SearchType.SA_WEIGHTED, false);
+			runProtocol(SearchType.SA_WEIGHTED);
 		}
 
 	}
@@ -234,7 +234,7 @@ public class PRepairServiceTests extends DataCleaningTests {
 
 			logger.log(ProdLevel.PROD, "Book URL : " + origUrl);
 
-			runProtocol(SearchType.SA_EPS_DYNAMIC, false);
+			runProtocol(SearchType.SA_EPS_DYNAMIC);
 		}
 
 	}
@@ -384,8 +384,7 @@ public class PRepairServiceTests extends DataCleaningTests {
 		return weightedFns;
 	}
 
-	private void runProtocol(SearchType searchType, boolean shdReturnInit)
-			throws Exception {
+	private void runProtocol(SearchType searchType) throws Exception {
 		for (int errPerc = 0; errPerc < Config.CONSQ_ERR_INJECT.length; errPerc++) {
 
 			reloadConfigs(Config.CONSQ_ERR_INJECT[errPerc]);
@@ -402,8 +401,7 @@ public class PRepairServiceTests extends DataCleaningTests {
 				Search search = getSearch(searchType, constraint, table,
 						errPerc);
 				Map<Long, Match> tidToMatch = runProtocol(search,
-						Config.shdPartitionViols, constraint, table,
-						shdReturnInit);
+						Config.SHOULD_PARTITION_VIOLS, constraint, table);
 				constraintToMatches.put(constraint, tidToMatch);
 			}
 
@@ -543,7 +541,7 @@ public class PRepairServiceTests extends DataCleaningTests {
 
 	private Map<Long, Match> runProtocol(Search search,
 			boolean shouldPartitionViols, Constraint constraint,
-			InfoContentTable table, boolean shdReturnInit) {
+			InfoContentTable table) {
 
 		logger.log(
 				ProdLevel.PROD,
@@ -597,7 +595,7 @@ public class PRepairServiceTests extends DataCleaningTests {
 			}
 		}
 
-		if (!Config.shdPartitionViols)
+		if (!Config.SHOULD_PARTITION_VIOLS)
 			logger.log(ProdLevel.PROD,
 					"\n\nCombining all chunks. Only 1 simulated annealing expt will be performed.");
 
@@ -633,7 +631,7 @@ public class PRepairServiceTests extends DataCleaningTests {
 
 			// Step 3 : Third party calculates recommendations.
 			Set<Candidate> solns = w.calcOptimalSolns(constraint,
-					partitionMatches, search, table, shdReturnInit);
+					partitionMatches, search, table);
 
 			List<Recommendation> soln = t.selectLargestSoln(solns);
 
@@ -869,10 +867,9 @@ public class PRepairServiceTests extends DataCleaningTests {
 		}
 
 		public Set<Candidate> calcOptimalSolns(Constraint constraint,
-				List<Match> tgtMatches, Search search, InfoContentTable table,
-				boolean shdReturnInit) {
+				List<Match> tgtMatches, Search search, InfoContentTable table) {
 			return repairService.calcOptimalSolns(constraint, tgtMatches,
-					search, tgtDataset, mDataset, table, shdReturnInit);
+					search, tgtDataset, mDataset, table);
 
 		}
 

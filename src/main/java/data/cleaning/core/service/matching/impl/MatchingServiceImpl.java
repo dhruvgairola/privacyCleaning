@@ -1,7 +1,6 @@
 package data.cleaning.core.service.matching.impl;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -29,9 +28,7 @@ import com.google.common.primitives.Floats;
 
 import data.cleaning.core.service.dataset.DatasetService;
 import data.cleaning.core.service.dataset.impl.Constraint;
-import data.cleaning.core.service.dataset.impl.MasterDataset;
 import data.cleaning.core.service.dataset.impl.Record;
-import data.cleaning.core.service.dataset.impl.TargetDataset;
 import data.cleaning.core.service.matching.MatchingService;
 import data.cleaning.core.utils.Config;
 import data.cleaning.core.utils.DebugLevel;
@@ -62,14 +59,6 @@ public class MatchingServiceImpl implements MatchingService {
 		this.rand = new Random(Config.SEED);
 	}
 
-	/*
-	 * Applies distance approximation heuristic if flag is set to true.
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * data.cleaning.core.service.matching.MatchingService#dist(java.lang.String
-	 * , java.lang.String, java.util.List, java.util.List, boolean)
-	 */
 	public EmbVector dist(String value, String meta,
 			List<List<String>> refSets, List<List<EmbVector>> embRefSets,
 			boolean shouldApproxDist) {
@@ -434,8 +423,6 @@ public class MatchingServiceImpl implements MatchingService {
 		// logger.log(DebugLevel.DEBUG, "Embedded master : " + embMaster);
 
 		if (dimReduction != 1.0d) {
-			logger.log(ProdLevel.PROD, "reducedDim :  " + reducedDim);
-			
 			// TODO: Changing greedy resampling will really improve accuracy a
 			// lot!
 
@@ -465,13 +452,13 @@ public class MatchingServiceImpl implements MatchingService {
 			KDTree<List<KDNodeInfo>> indexMaster = buildIndex(embMaster,
 					reducedDim);
 
-			tgtMatches = getPvtMatchesSingleIdx(embTgt, embMaster, indexMaster,
-					tgtRecords, mRecords, simThreshold);
+			tgtMatches = getPvtMatches(embTgt, embMaster, indexMaster,
+					simThreshold);
 		} else {
 			List<KDTree<List<KDNodeInfo>>> indicesMaster = buildIndices(
 					embMaster, reducedDim);
 
-			tgtMatches = getPvtMatchesMultIdx(embTgt, embMaster, indicesMaster,
+			tgtMatches = getPvtMatches(embTgt, embMaster, indicesMaster,
 					simThreshold);
 		}
 
@@ -772,20 +759,11 @@ public class MatchingServiceImpl implements MatchingService {
 		return idxs;
 	}
 
-	// TODO: Needs restructuring.
-	private List<Match> getPvtMatchesSingleIdx(EmbPrivateDataset loopingOver,
+	private List<Match> getPvtMatches(EmbPrivateDataset loopingOver,
 			EmbPrivateDataset indexed, KDTree<List<KDNodeInfo>> idx,
-			List<Record> tgtRecords, List<Record> mRecords, double simThreshold) {
-		Map<Long, Record> tidToRec = new HashMap<>();
-
-		for (Record tRec : tgtRecords) {
-			tidToRec.put(tRec.getId(), tRec);
-		}
-
+			double simThreshold) {
 		List<Match> matches = new ArrayList<>();
 		String[] cols = loopingOver.getCols();
-		List<String> colsL = new ArrayList<String>(Arrays.asList(cols));
-
 		EmbVector[][] loopingOverTable = loopingOver.getVectTable();
 		boolean shouldRemoveDupMatches = Config.VERSION
 				.contains(Version.REMOVE_DUPS_FROM_MATCHES);
@@ -814,141 +792,51 @@ public class MatchingServiceImpl implements MatchingService {
 				m.setMatchId(row);
 				m.setOriginalrId(loopingOver.getRId(row));
 
-				Record tRec = tidToRec.get(m.getOriginalrId());
-				Map<String, String> tColsToVal = tRec.getColsToVal();
-				String colStr = tRec.getRecordStr(colsL);
-
 				for (List<KDNodeInfo> ms : mss) {
 					for (KDNodeInfo m2 : ms) {
 						// Drill down to get dist. between column values.
 						if (Config.VERSION
 								.contains(Version.REMOVE_EXACT_MATCHES)) {
-//							List<EmbVector> chunkedMaster = m2
-//									.getChunkedEmbVector();
-//							float totDist = 0f;
-//							for (int col = 0; col < chunkedMaster.size(); col++) {
-//								EmbVector chunkMaster = chunkedMaster.get(col);
-//								float[] chunkTgt = chunkedTgt.get(col);
-//								float distC = idx.getDistanceMetric().distance(
-//										chunkTgt, chunkMaster.getVector());
-//
-//								if (distC > Config.FLOAT_EQUALIY_EPSILON) {
-//									m.addRidAndNonExactCol(m2.getrId(),
-//											cols[col]);
-//								}
-//								totDist += distC;
-//							}
+							List<EmbVector> chunkedMaster = m2
+									.getChunkedEmbVector();
+							float totDist = 0f;
+							for (int col = 0; col < chunkedMaster.size(); col++) {
+								EmbVector chunkMaster = chunkedMaster.get(col);
+								float[] chunkTgt = chunkedTgt.get(col);
+								float distC = idx.getDistanceMetric().distance(
+										chunkTgt, chunkMaster.getVector());
 
-//							logger.log(ProdLevel.PROD, "Real sim : " + sim
-//									+ ", " + tRec + ", " + mRec + ", " + colStr
-//									+ ", " + matchStr);
+								if (distC > Config.FLOAT_EQUALIY_EPSILON) {
+									m.addRidAndNonExactCol(m2.getrId(),
+											cols[col]);
+								}
+								totDist += distC;
+							}
 
-							// float dist = totDist / (float)
-							// chunkedMaster.size();
-							// // Don't add exact matches.
-							// if (dist > Config.FLOAT_EQUALIY_EPSILON)
-							// m.addRidAndDistIfAcceptable(m2.getrId(), dist,
-							// shouldRemoveDupMatches);
-
-							Record mRec = mRecords.get((int) (m2.getrId() - 1));
-
-							String matchStr = mRec.getRecordStr(colsL);
-							int levDist = DistanceMeasures.getLevDistance(
-									colStr, matchStr);
-							float sim = calcSim(levDist, colStr.length(),
-									matchStr.length());
-							
-							if (sim >= simThreshold) {
-								// logger.log(ProdLevel.PROD, "levDist : " +
-								// levDist
-								// + ", sim :" + sim + " colstr :" + colStr
-								// + " matchStr : " + matchStr);
-
-								m.addRidAndDistIfAcceptable(m2.getrId(), sim,
+							float dist = totDist / (float) chunkedMaster.size();
+							// Don't add exact matches.
+							if (dist > Config.FLOAT_EQUALIY_EPSILON)
+								m.addRidAndDistIfAcceptable(m2.getrId(), dist,
 										shouldRemoveDupMatches);
 
-								Map<String, String> mColsToVal = mRec
-										.getColsToVal();
-
-								for (String col : cols) {
-									if (!mColsToVal.get(col).equals(
-											tColsToVal.get(col))) {
-										m.addRidAndNonExactCol(m2.getrId(), col);
-									}
-								}
-							}
 						} else if (Config.VERSION
 								.contains(Version.BASIC_REMOVE_EXACT_MATCHES)) {
 
-//							float dist = idx.getDistanceMetric().distance(
-//									fCombinedVArr,
-//									m2.getEmbVector().getVector());
-//
-//							// Don't add exact matches.
-//							if (dist > Config.FLOAT_EQUALIY_EPSILON)
-//								m.addRidAndDistIfAcceptable(m2.getrId(), dist,
-//										shouldRemoveDupMatches);
-							Record mRec = mRecords.get((int) (m2.getrId() - 1));
+							float dist = idx.getDistanceMetric().distance(
+									fCombinedVArr,
+									m2.getEmbVector().getVector());
 
-							String matchStr = mRec.getRecordStr(colsL);
-							int levDist = DistanceMeasures.getLevDistance(
-									colStr, matchStr);
-							float sim = calcSim(levDist, colStr.length(),
-									matchStr.length());
-							
-							if (sim >= simThreshold) {
-								// logger.log(ProdLevel.PROD, "levDist : " +
-								// levDist
-								// + ", sim :" + sim + " colstr :" + colStr
-								// + " matchStr : " + matchStr);
-
-								m.addRidAndDistIfAcceptable(m2.getrId(), sim,
+							// Don't add exact matches.
+							if (dist > Config.FLOAT_EQUALIY_EPSILON)
+								m.addRidAndDistIfAcceptable(m2.getrId(), dist,
 										shouldRemoveDupMatches);
-
-								Map<String, String> mColsToVal = mRec
-										.getColsToVal();
-
-								for (String col : cols) {
-									if (!mColsToVal.get(col).equals(
-											tColsToVal.get(col))) {
-										m.addRidAndNonExactCol(m2.getrId(), col);
-									}
-								}
-							}
 						} else {
-//							float dist = idx.getDistanceMetric().distance(
-//									fCombinedVArr,
-//									m2.getEmbVector().getVector());
-//
-//							m.addRidAndDistIfAcceptable(m2.getrId(), dist,
-//									shouldRemoveDupMatches);
-							Record mRec = mRecords.get((int) (m2.getrId() - 1));
+							float dist = idx.getDistanceMetric().distance(
+									fCombinedVArr,
+									m2.getEmbVector().getVector());
 
-							String matchStr = mRec.getRecordStr(colsL);
-							int levDist = DistanceMeasures.getLevDistance(
-									colStr, matchStr);
-							float sim = calcSim(levDist, colStr.length(),
-									matchStr.length());
-							
-							if (sim >= simThreshold) {
-								// logger.log(ProdLevel.PROD, "levDist : " +
-								// levDist
-								// + ", sim :" + sim + " colstr :" + colStr
-								// + " matchStr : " + matchStr);
-
-								m.addRidAndDistIfAcceptable(m2.getrId(), sim,
-										shouldRemoveDupMatches);
-
-								Map<String, String> mColsToVal = mRec
-										.getColsToVal();
-
-								for (String col : cols) {
-									if (!mColsToVal.get(col).equals(
-											tColsToVal.get(col))) {
-										m.addRidAndNonExactCol(m2.getrId(), col);
-									}
-								}
-							}
+							m.addRidAndDistIfAcceptable(m2.getrId(), dist,
+									shouldRemoveDupMatches);
 						}
 
 					}
@@ -964,9 +852,7 @@ public class MatchingServiceImpl implements MatchingService {
 		return matches;
 	}
 
-	// Too expensive for large datasets.
-	@Deprecated
-	private List<Match> getPvtMatchesMultIdx(EmbPrivateDataset loopingOver,
+	private List<Match> getPvtMatches(EmbPrivateDataset loopingOver,
 			EmbPrivateDataset indexed, List<KDTree<List<KDNodeInfo>>> idxs,
 			float simThreshold) {
 		List<Match> matches = new ArrayList<>();
