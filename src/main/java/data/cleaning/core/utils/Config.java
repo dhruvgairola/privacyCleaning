@@ -28,14 +28,9 @@ public class Config {
 	// public static final int[] NUM_INCORRECT_MATCHES = new int[] { 0, 5, 30,
 	// 60, 120, 200 };
 	
-//	// Comparative, IMDB 100k, 0.08f err
-//	public static final int[] NUM_NON_MATCH = new int[] { -1 };
-//	public static final int[] NUM_INCORRECT_MATCHES = new int[] { 0 };
-
-	public static final int[] NUM_NON_MATCH = new int[] { 10, 450, 950, 1800,
-			2800, -1 };
-	public static final int[] NUM_INCORRECT_MATCHES = new int[] { 1, 350, 550,
-			950, 1450, 2180 };
+	// IMDB 100k, 0.08f err
+	public static final int[] NUM_NON_MATCH = new int[] { -1 };
+	public static final int[] NUM_INCORRECT_MATCHES = new int[] { 0 };
 	
 	// IMDB increasing tuples
 	public static final int[] NUM_NON_MATCH_INC_TUPLES = new int[] { 2, 150,
@@ -88,7 +83,7 @@ public class Config {
 	public static final float[] CORA_SIM_THRESHOLDS = new float[] { 0.6f, 0.7f,
 			0.8f, 0.9f, 1.0f };
 
-	public static String imdbOrigFileName = "imdb_500k";
+	public static String imdbOrigFileName = "imdb_100k";
 	public static String imdbOrigFileUrl = "datasets/imdb/" + imdbOrigFileName
 			+ ".csv";
 	public static final String IMDB_ORIG_FD_URL = "datasets/imdb/imdb_fds.csv";
