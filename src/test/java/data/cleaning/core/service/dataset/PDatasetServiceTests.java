@@ -69,11 +69,19 @@ public class PDatasetServiceTests {
 	 */
 	@Test
 	public void testPrepareDatasets() throws Exception {
-		int[] chunknum = new int[] { 220 };
+		// (Config for books) 2FDs, 3FDs
+		int[] chunknum = new int[] { 50, 70, 90, 120, 150, 200, 220 };
+		// // (Config for books) 6FDs, also change line 826, ErrgenServiceImpl
+		// int[] chunknum = new int[] { 212 };
+		// // (Config for books) 4FDs
+		// int[] chunknum = new int[] { 50, 70, 90 };
+		// // (Config for books) 5FDs
+		// int[] chunknum = new int[] { 50 };
 
 		for (int chunk : chunknum) {
 			rand = new Random(Config.SEED);
-			logger.log(ProdLevel.PROD, "\nUser defined chunksize : " + chunk + "\n");
+			logger.log(ProdLevel.PROD, "\nUser defined chunksize : " + chunk
+					+ "\n");
 			Config.ROUGH_CHUNK_SIZE = chunk;
 			testConstructGroundTruth();
 			testConstructTargetErrs();

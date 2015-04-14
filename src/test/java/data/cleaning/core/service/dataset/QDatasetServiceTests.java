@@ -535,12 +535,12 @@ public class QDatasetServiceTests {
 
 		ErrorType e1 = new ErrorType(ErrorType.Type.IN_DOMAIN_SIMILAR, 0.49f);
 		Map<Float, Float> simToDistribution = new LinkedHashMap<>();
-		int numSteps = (int) (aboveThresholdDistr / 0.2f);
+		int numSteps = (int) (aboveThresholdDistr / 0.1f);
 		float diff = 1f - (simThreshold + Config.FLOAT_EQUALIY_EPSILON);
 
 		for (int i = 0; i < numSteps; i++) {
 			simToDistribution.put(simThreshold + (diff * rand.nextFloat()),
-					0.2f);
+					0.1f);
 		}
 
 		simToDistribution.put(simThreshold * 0.8f, belowThresholdDistr);

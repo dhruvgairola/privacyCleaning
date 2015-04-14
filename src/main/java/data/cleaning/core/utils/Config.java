@@ -27,22 +27,17 @@ public class Config {
 	// 300, -1 };
 	// public static final int[] NUM_INCORRECT_MATCHES = new int[] { 0, 5, 30,
 	// 60, 120, 200 };
-	
-//	// Comparative, IMDB 100k, 0.08f err
-//	public static final int[] NUM_NON_MATCH = new int[] { -1 };
-//	public static final int[] NUM_INCORRECT_MATCHES = new int[] { 0 };
-
+	// IMDB 500k increasing errors
 	public static final int[] NUM_NON_MATCH = new int[] { 10, 450, 950, 1800,
 			2800, -1 };
 	public static final int[] NUM_INCORRECT_MATCHES = new int[] { 1, 350, 550,
 			950, 1450, 2180 };
-	
 	// IMDB increasing tuples
 	public static final int[] NUM_NON_MATCH_INC_TUPLES = new int[] { 2, 150,
 			260, 630, 860, 1220 };
 	public static final int[] NUM_INCORRECT_MATCHES_INC_TUPLES = new int[] { 0,
 			30, 90, 200, 350, 520 };
-	public static final float BELOW_THRESHOLD_DISTR = 0f;
+	public static final float BELOW_THRESHOLD_DISTR = 0.2f;
 
 	// Performance tests.
 	public static final int[] P_NUM_NON_MATCH = new int[] { 10, 450, 950, 1800,
@@ -60,7 +55,7 @@ public class Config {
 		HEALTH, CORA, BOOKS, IMDB, POLLUTION;
 	}
 
-	public static final Dataset CURRENT_DATASET = Dataset.IMDB;
+	public static final Dataset CURRENT_DATASET = Dataset.BOOKS;
 	public static final char DATASET_SEPARATOR = ',';
 	public static final char DATASET_QUOTE_CHAR = '\'';
 	public static final char DATASET_DOUBLE_QUOTE_CHAR = '\"';
@@ -92,7 +87,7 @@ public class Config {
 	public static String imdbOrigFileUrl = "datasets/imdb/" + imdbOrigFileName
 			+ ".csv";
 	public static final String IMDB_ORIG_FD_URL = "datasets/imdb/imdb_fds.csv";
-	public static final float IMDB_SIM_THRESHOLD = 0.726f;
+	public static final float IMDB_SIM_THRESHOLD = 0.7f;
 	public static final float[] IMDB_SIM_THRESHOLDS = new float[] { 0.6f, 0.7f,
 			0.8f, 0.9f, 1.0f };
 
@@ -113,15 +108,15 @@ public class Config {
 			0.7f, 0.8f, 0.9f, 1.0f };
 
 	// Private data matching settings.
-	public static final int NUM_STRINGS = 40;
+	public static final int NUM_STRINGS = 20;
 	public static final double DIM_REDUCTION = 0.9d;
 	public static final boolean SHOULD_APPROX_DIST = true;
-	public static final int TOP_K_MATCHES = 5;
+	public static final int TOP_K_MATCHES = 2;
 	// This is to toggle the decision rule matching on and off. true = off.
 	public static final boolean SHOULD_AVERAGE = true;
 
 	public static final InitStrategy INIT_STRATEGY = InitStrategy.GREEDY_BEST_MATCH;
-	public static boolean shdPartitionViols = true;
+	public static final boolean SHOULD_PARTITION_VIOLS = true;
 
 	// Simulated annealing settings.
 	public static final double START_TEMP = 0.0009d;

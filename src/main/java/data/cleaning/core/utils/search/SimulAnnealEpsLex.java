@@ -48,8 +48,7 @@ public class SimulAnnealEpsLex extends Search {
 	@Override
 	public Set<Candidate> calcOptimalSolns(Constraint constraint,
 			List<Match> tgtMatches, TargetDataset tgtDataset,
-			MasterDataset mDataset, InfoContentTable table,
-			boolean shdReturnInit) {
+			MasterDataset mDataset, InfoContentTable table) {
 		double temperature = initTemperature;
 
 		Set<Candidate> solns = new HashSet<>();
@@ -77,7 +76,7 @@ public class SimulAnnealEpsLex extends Search {
 						finalTemperature, alpha, bestEnergy, strategy,
 						indNormStrat);
 				Set<Candidate> optSolns = h.calcOptimalSolns(constraint,
-						tgtMatches, tgtDataset, mDataset, table, shdReturnInit);
+						tgtMatches, tgtDataset, mDataset, table);
 				if (optSolns == null || optSolns.isEmpty())
 					return null;
 

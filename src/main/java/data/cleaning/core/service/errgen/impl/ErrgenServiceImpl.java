@@ -822,6 +822,8 @@ public class ErrgenServiceImpl implements ErrgenService {
 		// because of viols wrt other constraints. To avoid this, we add errors
 		// in small chunks.
 		int loopFactor = constraints.size() * 150;
+		// 6FDs books case
+//		int loopFactor = constraints.size() * 81;
 		int quotient = numErrs / loopFactor;
 
 		for (int i = 0; i < loopFactor; i++) {
