@@ -46,8 +46,7 @@ public class RandomWalk extends Search {
 	@Override
 	public Set<Candidate> calcOptimalSolns(Constraint constraint,
 			List<Match> tgtMatches, TargetDataset tgtDataset,
-			MasterDataset mDataset, InfoContentTable table,
-			boolean shdReturnInit) {
+			MasterDataset mDataset, InfoContentTable table) {
 		double maxInd = calcMaxInd(constraint, tgtDataset.getRecords(),
 				indNormStrat);
 		double maxPvt = table.getMaxInfoContent();
@@ -72,13 +71,12 @@ public class RandomWalk extends Search {
 			numChoiceNeighb += choice.size() - 1;
 		}
 
-		logger.log(ProdLevel.PROD, "\n\nNum neighbours : "
+		logger.log(ProdLevel.PROD, "\n\nRandomwalk, Num neighbours : "
 				+ (numBitFlipNeighb + numChoiceNeighb));
 
 		Candidate currentSoln = getInitialSoln(strategy, sigSize,
 				positionToChoices, pInfo.getPositionToExactMatch(),
 				pInfo.getTidToPosition());
-
 		List<Recommendation> currentSolnRecs = currentSoln.getRecommendations();
 
 		if (currentSoln == null || currentSolnRecs == null

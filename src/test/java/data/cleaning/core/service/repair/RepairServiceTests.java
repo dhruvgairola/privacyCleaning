@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
@@ -59,7 +60,7 @@ import data.cleaning.core.utils.search.SimulAnnealWeighted;
 @RunWith(SpringJUnit4ClassRunner.class)
 // -Djava.library.path=/Library/Frameworks/R.framework/Resources/library/rJava/jri/
 // RHOME : /Library/Frameworks/R.framework/Resources
-public class QRepairServiceTests extends DataCleaningTests {
+public class RepairServiceTests extends DataCleaningTests {
 
 	@Autowired
 	private RepairService repairService;
@@ -72,7 +73,7 @@ public class QRepairServiceTests extends DataCleaningTests {
 	private Master m;
 
 	private static final Logger logger = Logger
-			.getLogger(QRepairServiceTests.class);
+			.getLogger(RepairServiceTests.class);
 
 	@Before
 	public void init() {
@@ -82,39 +83,53 @@ public class QRepairServiceTests extends DataCleaningTests {
 	}
 
 	@Test
-	public void testMatchQuality() throws Exception {
-		Config.shdPartitionViols = false;
-		runProtocolEVS(SearchType.SA_WEIGHTED, true);
-	}
-
-	@Test
 	public void testHillClimbingEps() throws Exception {
-		runProtocolEVS(SearchType.HC_EPS, false);
+		runProtocolEVS(SearchType.HC_EPS);
 	}
 
 	@Test
 	public void testHillClimbingEpsDynamic() throws Exception {
-		runProtocolEVS(SearchType.HC_EPS_DYNAMIC, false);
+		runProtocolEVS(SearchType.HC_EPS_DYNAMIC);
 	}
 
 	@Test
 	public void testHillClimbingEpsLex() throws Exception {
-		runProtocolEVS(SearchType.HC_EPS_LEX, false);
+		runProtocolEVS(SearchType.HC_EPS_LEX);
 	}
 
 	@Test
 	public void testHillClimbingWeighted() throws Exception {
-		runProtocolEVS(SearchType.HC_WEIGHTED, false);
+		runProtocolEVS(SearchType.HC_WEIGHTED);
 	}
 
 	@Test
 	public void testSimulAnnealEps() throws Exception {
-		runProtocolEVS(SearchType.SA_EPS, false);
+		runProtocolEVS(SearchType.SA_EPS);
+	}
+
+	@Test
+	public void testSimulAnnealEpsEVA() throws Exception {
+		for (int i = 0; i < Config.EPSILON_VS_PVT_LOSS.length; i++) {
+			logger.log(ProdLevel.PROD, "\nEpsilon : "
+					+ Config.EPSILON_VS_PVT_LOSS[i]);
+			rand = new Random(Config.SEED);
+			runProtocolEVA(SearchType.SA_EPS, Config.EPSILON_VS_PVT_LOSS[i]);
+		}
+	}
+
+	@Test
+	public void testSimulAnnealEpsLexEVA() throws Exception {
+		for (int i = 0; i < Config.EPSILON_VS_PVT_LOSS.length; i++) {
+			logger.log(ProdLevel.PROD, "\nEpsilon : "
+					+ Config.EPSILON_VS_PVT_LOSS[i]);
+			rand = new Random(Config.SEED);
+			runProtocolEVA(SearchType.SA_EPS_LEX, Config.EPSILON_VS_PVT_LOSS[i]);
+		}
 	}
 
 	@Test
 	public void testSimulAnnealEpsFlexi() throws Exception {
-		runProtocolEVS(SearchType.SA_EPS_FLEX, false);
+		runProtocolEVS(SearchType.SA_EPS_FLEX);
 	}
 
 	@Test
@@ -135,19 +150,19 @@ public class QRepairServiceTests extends DataCleaningTests {
 
 			logger.log(ProdLevel.PROD, "IMDB URL : " + origUrl);
 
-			runProtocolEVS(SearchType.SA_EPS_FLEX, false);
+			runProtocolEVS(SearchType.SA_EPS_FLEX);
 		}
 
 	}
 
 	@Test
 	public void testSimulAnnealEpsDynamic() throws Exception {
-		runProtocolEVS(SearchType.SA_EPS_DYNAMIC, false);
+		runProtocolEVS(SearchType.SA_EPS_DYNAMIC);
 	}
 
 	@Test
 	public void testSimulAnnealEpsLex() throws Exception {
-		runProtocolEVS(SearchType.SA_EPS_LEX, false);
+		runProtocolEVS(SearchType.SA_EPS_LEX);
 	}
 
 	@Test
@@ -168,14 +183,14 @@ public class QRepairServiceTests extends DataCleaningTests {
 
 			logger.log(ProdLevel.PROD, "IMDB URL : " + origUrl);
 
-			runProtocolEVS(SearchType.SA_EPS_LEX, false);
+			runProtocolEVS(SearchType.SA_EPS_LEX);
 		}
 
 	}
 
 	@Test
 	public void testSimulAnnealWeighted() throws Exception {
-		runProtocolEVS(SearchType.SA_WEIGHTED, false);
+		runProtocolEVS(SearchType.SA_WEIGHTED);
 	}
 
 	/**
@@ -201,7 +216,7 @@ public class QRepairServiceTests extends DataCleaningTests {
 
 			logger.log(ProdLevel.PROD, "IMDB URL : " + origUrl);
 
-			runProtocolEVS(SearchType.SA_WEIGHTED, false);
+			runProtocolEVS(SearchType.SA_WEIGHTED);
 		}
 
 	}
@@ -229,7 +244,7 @@ public class QRepairServiceTests extends DataCleaningTests {
 
 			logger.log(ProdLevel.PROD, "IMDB URL : " + origUrl);
 
-			runProtocolEVS(SearchType.SA_EPS_DYNAMIC, false);
+			runProtocolEVS(SearchType.SA_EPS_DYNAMIC);
 		}
 
 	}
@@ -379,8 +394,7 @@ public class QRepairServiceTests extends DataCleaningTests {
 		return weightedFns;
 	}
 
-	private void runProtocolEVS(SearchType searchType, boolean shdReturnInit)
-			throws Exception {
+	private void runProtocolEVS(SearchType searchType) throws Exception {
 		for (int errPerc = 0; errPerc < Config.CONSQ_ERR_INJECT.length; errPerc++) {
 			reloadConfigs(Config.CONSQ_ERR_INJECT[errPerc]);
 			loadDatsets(Config.CONSQ_ERR_INJECT[errPerc]);
@@ -411,8 +425,8 @@ public class QRepairServiceTests extends DataCleaningTests {
 				Search search = getSearch(searchType, constraint, table,
 						errPerc);
 				Map<Long, Match> tidToMatch = runProtocolEVS(search,
-						Config.shdPartitionViols, constraint, table, tidToemd,
-						numErr, met, correctedIds, incorrectIds, shdReturnInit);
+						Config.SHOULD_PARTITION_VIOLS, constraint, table,
+						tidToemd, numErr, met, correctedIds, incorrectIds);
 				constraintToMatches.put(constraint, tidToMatch);
 			}
 
@@ -644,11 +658,11 @@ public class QRepairServiceTests extends DataCleaningTests {
 		return search;
 	}
 
-	private Map<Long, Match> runProtocolEVS(Search search,
+	private Map<Long, Match> runProtocolEVA(Search search, RandomWalk rwSearch,
 			boolean shouldPartitionViols, Constraint constraint,
 			InfoContentTable table, Map<Long, ErrorMetadata> tidToemd,
 			int numErr, Metrics met, Set<Long> correctedIds,
-			Set<Long> incorrectIds, boolean shdReturnInit) {
+			Set<Long> incorrectIds, double epsPercentage) {
 		List<String> consequent = constraint.getConsequentCols();
 		List<String> antecedents = constraint.getAntecedentCols();
 
@@ -689,7 +703,7 @@ public class QRepairServiceTests extends DataCleaningTests {
 
 		// Step 2 : Third party calculates matches for viols.
 		List<Match> tgtMatches = w
-				.calcPvtMatches(constraint, tgtViols, mDataset.getRecords(),
+				.calcMatches(constraint, tgtViols, mDataset.getRecords(),
 						tgtDataset.getName(), mDataset.getName());
 
 		if (tgtMatches == null)
@@ -704,7 +718,170 @@ public class QRepairServiceTests extends DataCleaningTests {
 			}
 		}
 
-		if (!Config.shdPartitionViols)
+		if (!Config.SHOULD_PARTITION_VIOLS)
+			logger.log(ProdLevel.PROD,
+					"\n\nCombining all chunks. Only 1 simulated annealing expt will be performed.");
+
+		for (int i = 0; i < partitionViols.size(); i++) {
+			Set<Long> viols = partitionViols.get(i);
+			logger.log(ProdLevel.PROD,
+					"\n\n-----------------------------------");
+			logger.log(ProdLevel.PROD, "Fixing violations [chunk num = "
+					+ (i + 1) + " / " + numChunks + ", size = " + viols.size()
+					+ "] : \n" + viols);
+			// logger.log(
+			// ProdLevel.PROD,
+			// "Fixing violations [chunk num = " + (i + 1) + " / "
+			// + numChunks + ", size = " + viols.size() + "] : \n"
+			// + viols + "\n\n"
+			// + prettyPrintViols(viols, antecedents, consequent));
+			logger.log(ProdLevel.PROD, "-----------------------------------");
+
+			List<Match> partitionMatches = new ArrayList<>();
+
+			for (long v : viols) {
+				if (tidToMatch.containsKey(v)) {
+					partitionMatches.add(tidToMatch.get(v));
+				}
+			}
+
+			logger.log(ProdLevel.PROD, "\nMatches for violations ["
+					+ constraint + "] : \n" + partitionMatches);
+
+			if (partitionMatches == null || partitionMatches.isEmpty()) {
+				continue;
+			}
+
+			// Perform a random walk first to get some stats.
+			w.calcOptimalSolns(constraint, partitionMatches, rwSearch, table);
+			Map<Objective, RandomWalkStats> objectiveToStats = rwSearch
+					.getObjectiveToStats();
+
+			// Use stats to update the epsilons on the search.
+			if (search instanceof SimulAnnealEps) {
+				SimulAnnealEps r = (SimulAnnealEps) search;
+				Set<Objective> bfns = r.getBoundedObjectives();
+				for (Objective bfn : bfns) {
+					// Set epsilon on ind only.
+					if (bfn instanceof CustomCleaningObjective) {
+						RandomWalkStats st = objectiveToStats.get(bfn);
+						if (st != null) {
+							double updatedEps = st.getMin()
+									+ (epsPercentage * (st.getMax() - st
+											.getMin()));
+							logger.log(ProdLevel.PROD,
+									"\nUpdated CustomCleaningObjective epsilon from: "
+											+ bfn.getEpsilon() + " to:"
+											+ updatedEps);
+							logger.log(ProdLevel.PROD, st);
+							bfn.setEpsilon(updatedEps);
+						}
+					}
+				}
+			} else if (search instanceof SimulAnnealEpsLex) {
+				SimulAnnealEpsLex r = (SimulAnnealEpsLex) search;
+				List<Objective> fns = r.getObjectives();
+				for (Objective fn : fns) {
+					// Set epsilon on pvt only.
+					if (fn instanceof PrivacyObjective) {
+						RandomWalkStats st = objectiveToStats.get(fn);
+						if (st != null) {
+							double updatedEps = st.getMin()
+									+ (epsPercentage * (st.getMax() - st
+											.getMin()));
+							logger.log(ProdLevel.PROD,
+									"\nUpdated PrivacyObjective epsilon from: "
+											+ fn.getEpsilon() + " to:"
+											+ updatedEps);
+							logger.log(ProdLevel.PROD, st);
+							fn.setEpsilon(updatedEps);
+						}
+					}
+				}
+			}
+
+			// Step 3 : Third party calculates recommendations.
+			Set<Candidate> solns = w.calcOptimalSolns(constraint,
+					partitionMatches, search, table);
+
+			List<Recommendation> soln = t
+					.selectMostCorrectSoln(solns, tidToemd);
+
+			// Step 4 : Apply recommendation.
+			t.applyRecommendationSet(soln);
+
+			// Step 5 : Replace the info content of the revealed values with 0.
+			m.removeInfoContentUsingCandidate(table, soln);
+
+			gatherStats(constraintSize, soln, tidToemd, partitionViols, met,
+					numErr, correctedIds, incorrectIds);
+		}
+
+		return tidToMatch;
+
+	}
+
+	private Map<Long, Match> runProtocolEVS(Search search,
+			boolean shouldPartitionViols, Constraint constraint,
+			InfoContentTable table, Map<Long, ErrorMetadata> tidToemd,
+			int numErr, Metrics met, Set<Long> correctedIds,
+			Set<Long> incorrectIds) {
+		List<String> consequent = constraint.getConsequentCols();
+		List<String> antecedents = constraint.getAntecedentCols();
+
+		logger.log(
+				ProdLevel.PROD,
+				"\nInitial InD : "
+						+ Stats.ind(constraint, tgtDataset.getRecords()));
+
+		logger.log(ProdLevel.PROD, "Matching similarity : " + simThreshold);
+
+		if (table.getData().length < 100)
+			logger.log(ProdLevel.PROD, "\n\nInfo content table :\n\n" + table);
+
+		logger.log(ProdLevel.PROD, "\n-----------------------------------");
+		logger.log(ProdLevel.PROD, "Grouping by constraint " + constraint);
+		logger.log(ProdLevel.PROD, "-----------------------------------\n");
+
+		// Step 1 : Target finds all violations.
+		Violations allViols = t.calcViolations(tgtDataset.getRecords(),
+				constraint);
+		if (allViols == null || allViols.getViolMap() == null
+				|| allViols.getViolMap().isEmpty())
+			return null;
+
+		int numChunks = allViols.getViolMap().keySet().size();
+		logger.log(ProdLevel.PROD, "Num viols : "
+				+ allViols.getViolMap().size() + ", Num viol chunks : "
+				+ numChunks);
+
+		int constraintSize = constraint.getColsInConstraint().size();
+
+		List<Set<Long>> partitionViols = w.subsetViolsBySize(allViols);
+
+		if (!shouldPartitionViols)
+			partitionViols = combineViolSubsets(partitionViols);
+
+		List<Record> tgtViols = t.getViolRecords(partitionViols);
+
+		// Step 2 : Third party calculates matches for viols.
+		List<Match> tgtMatches = w
+				.calcMatches(constraint, tgtViols, mDataset.getRecords(),
+						tgtDataset.getName(), mDataset.getName());
+
+		if (tgtMatches == null)
+			return null;
+
+		Map<Long, Match> tidToMatch = new HashMap<>();
+
+		for (Match m : tgtMatches) {
+			if (!(m == null || m.getBestMatches() == null || m.getBestMatches()
+					.isEmpty())) {
+				tidToMatch.put(m.getOriginalrId(), m);
+			}
+		}
+
+		if (!Config.SHOULD_PARTITION_VIOLS)
 			logger.log(ProdLevel.PROD,
 					"\n\nCombining all chunks. Only 1 simulated annealing expt will be performed.");
 
@@ -740,7 +917,7 @@ public class QRepairServiceTests extends DataCleaningTests {
 
 			// Step 3 : Third party calculates recommendations.
 			Set<Candidate> solns = w.calcOptimalSolns(constraint,
-					partitionMatches, search, table, shdReturnInit);
+					partitionMatches, search, table);
 
 			List<Recommendation> soln = t
 					.selectMostCorrectSoln(solns, tidToemd);
@@ -811,8 +988,7 @@ public class QRepairServiceTests extends DataCleaningTests {
 						}
 					}
 				}
-				
-				
+
 				numTotalRepairs++;
 			}
 		}
@@ -1083,10 +1259,9 @@ public class QRepairServiceTests extends DataCleaningTests {
 		}
 
 		public Set<Candidate> calcOptimalSolns(Constraint constraint,
-				List<Match> tgtMatches, Search search, InfoContentTable table,
-				boolean shdReturnInit) {
+				List<Match> tgtMatches, Search search, InfoContentTable table) {
 			return repairService.calcOptimalSolns(constraint, tgtMatches,
-					search, tgtDataset, mDataset, table, shdReturnInit);
+					search, tgtDataset, mDataset, table);
 
 		}
 
@@ -1119,6 +1294,7 @@ public class QRepairServiceTests extends DataCleaningTests {
 	@Test
 	public void testSimulAnnealEpsLexEVP() throws Exception {
 		for (int i = 0; i < Config.EPSILON_VS_PVT_LOSS.length; i++) {
+			rand = new Random(Config.SEED);
 			runProtocolEVP(SearchType.SA_EPS_LEX, Config.EPSILON_VS_PVT_LOSS[i]);
 		}
 	}
@@ -1126,6 +1302,7 @@ public class QRepairServiceTests extends DataCleaningTests {
 	@Test
 	public void testSimulAnnealEpsEVP() throws Exception {
 		for (int i = 0; i < Config.EPSILON_VS_PVT_LOSS.length; i++) {
+			rand = new Random(Config.SEED);
 			runProtocolEVP(SearchType.SA_EPS, Config.EPSILON_VS_PVT_LOSS[i]);
 		}
 	}
@@ -1151,13 +1328,72 @@ public class QRepairServiceTests extends DataCleaningTests {
 						Config.IND_NORM_STRAT);
 				Search search = getSearchEVP(searchType, constraint, table,
 						errPerc);
-				totPvtLoss += runProtocolEVP(search, rwSearch,
-						Config.shdPartitionViols, constraint, table,
+				double pvt = runProtocolEVP(search, rwSearch,
+						Config.SHOULD_PARTITION_VIOLS, constraint, table,
 						epsPercentage);
+				totPvtLoss += pvt;
+
 			}
 
 			logger.log(ProdLevel.PROD, searchType.name() + ", Eps : "
 					+ epsPercentage + ", Total pvt loss : " + totPvtLoss + "\n");
+
+			long end = System.nanoTime();
+
+			logger.log(
+					ProdLevel.PROD,
+					"time taken (sec) : "
+							+ TimeUnit.SECONDS.convert(end - start,
+									TimeUnit.NANOSECONDS));
+		}
+	}
+
+	private void runProtocolEVA(SearchType searchType, double epsPercentage)
+			throws Exception {
+		for (int errPerc = 0; errPerc < Config.CONSQ_ERR_INJECT.length; errPerc++) {
+			reloadConfigs(Config.CONSQ_ERR_INJECT[errPerc]);
+			loadDatsets(Config.CONSQ_ERR_INJECT[errPerc]);
+
+			long start = System.nanoTime();
+
+			List<ErrorMetadata> emds = datasetService.loadErrMetadata(
+					tgtErrMetaUrl, datasetSeparator, datasetQuoteChar);
+
+			Map<Long, ErrorMetadata> tidToemd = new HashMap<>();
+
+			int numErr = 0;
+
+			for (ErrorMetadata emd : emds) {
+				numErr += emd.getErrorsColsToVal().size();
+				tidToemd.put(emd.getTid(), emd);
+			}
+
+			Metrics met = new Metrics();
+			Set<Long> correctedIds = new HashSet<>();
+			Set<Long> incorrectIds = new HashSet<>();
+			Map<Constraint, Map<Long, Match>> constraintToMatches = new HashMap<>();
+
+			for (int i = 0; i < constraints.size(); i++) {
+				Constraint constraint = constraints.get(i);
+				InfoContentTable table = m.calcInfoContentTable(constraint,
+						IndexType.HASH_MAP);
+				List<Objective> fns = constructWeightedObjective(constraint,
+						table);
+				RandomWalk rwSearch = new RandomWalk(fns,
+						Config.RANDOM_WALK_ITERATIONS, Config.INIT_STRATEGY,
+						Config.IND_NORM_STRAT);
+				Search search = getSearchEVP(searchType, constraint, table,
+						errPerc);
+				Map<Long, Match> tidToMatch = runProtocolEVA(search, rwSearch,
+						Config.SHOULD_PARTITION_VIOLS, constraint, table,
+						tidToemd, numErr, met, correctedIds, incorrectIds,
+						epsPercentage);
+				constraintToMatches.put(constraint, tidToMatch);
+
+			}
+
+			printStats(constraintToMatches, met, correctedIds, incorrectIds,
+					tidToemd, searchType);
 
 			long end = System.nanoTime();
 
@@ -1232,7 +1468,7 @@ public class QRepairServiceTests extends DataCleaningTests {
 		double maxPvt = table.getMaxInfoContent();
 		double totPvtLoss = 0d;
 
-		if (!Config.shdPartitionViols)
+		if (!Config.SHOULD_PARTITION_VIOLS)
 			logger.log(ProdLevel.PROD,
 					"\n\nCombining all chunks. Only 1 simulated annealing expt will be performed.");
 
@@ -1267,8 +1503,7 @@ public class QRepairServiceTests extends DataCleaningTests {
 			}
 
 			// Perform a random walk first to get some stats.
-			w.calcOptimalSolns(constraint, partitionMatches, rwSearch, table,
-					false);
+			w.calcOptimalSolns(constraint, partitionMatches, rwSearch, table);
 			Map<Objective, RandomWalkStats> objectiveToStats = rwSearch
 					.getObjectiveToStats();
 
@@ -1281,15 +1516,15 @@ public class QRepairServiceTests extends DataCleaningTests {
 					if (bfn instanceof CustomCleaningObjective) {
 						RandomWalkStats st = objectiveToStats.get(bfn);
 						if (st != null) {
-							logger.log(
-									ProdLevel.PROD,
-									"Updated CustomCleaningObjective epsilon from: "
-											+ bfn.getEpsilon()
-											+ " to:"
-											+ (st.getMax() - (epsPercentage * (st
-													.getMax() - st.getMin()))));
+							double updatedEps = st.getMin()
+									+ (epsPercentage * (st.getMax() - st
+											.getMin()));
+							logger.log(ProdLevel.PROD,
+									"\nUpdated CustomCleaningObjective epsilon from: "
+											+ bfn.getEpsilon() + " to:"
+											+ updatedEps);
 							logger.log(ProdLevel.PROD, st);
-							bfn.setEpsilon(epsPercentage * st.getMax());
+							bfn.setEpsilon(updatedEps);
 						}
 					}
 				}
@@ -1301,15 +1536,15 @@ public class QRepairServiceTests extends DataCleaningTests {
 					if (fn instanceof PrivacyObjective) {
 						RandomWalkStats st = objectiveToStats.get(fn);
 						if (st != null) {
-							logger.log(
-									ProdLevel.PROD,
-									"Updated PrivacyObjective epsilon from: "
-											+ fn.getEpsilon()
-											+ " to:"
-											+ (st.getMax() - (epsPercentage * (st
-													.getMax() - st.getMin()))));
+							double updatedEps = st.getMin()
+									+ (epsPercentage * (st.getMax() - st
+											.getMin()));
+							logger.log(ProdLevel.PROD,
+									"\nUpdated PrivacyObjective epsilon from: "
+											+ fn.getEpsilon() + " to:"
+											+ updatedEps);
 							logger.log(ProdLevel.PROD, st);
-							fn.setEpsilon(epsPercentage * st.getMax());
+							fn.setEpsilon(updatedEps);
 						}
 					}
 				}
@@ -1317,7 +1552,7 @@ public class QRepairServiceTests extends DataCleaningTests {
 
 			// Step 3 : Third party calculates recommendations.
 			Set<Candidate> solns = w.calcOptimalSolns(constraint,
-					partitionMatches, search, table, false);
+					partitionMatches, search, table);
 
 			Candidate soln = t.selectLargestSolnCandidate(solns);
 
@@ -1329,7 +1564,11 @@ public class QRepairServiceTests extends DataCleaningTests {
 			// Step 4 : Apply recommendation.
 			t.applyRecommendationSet(solnRecs);
 
-			totPvtLoss += pObj.out(soln, tgtDataset, mDataset, maxPvt, 0, 0);
+			double p = pObj.out(soln, tgtDataset, mDataset, maxPvt, 0, 0);
+
+			totPvtLoss += p;
+
+			logger.log(ProdLevel.PROD, "Pvt loss for this soln : " + p);
 
 			// Step 5 : Replace the info content of the revealed values with 0.
 			m.removeInfoContentUsingCandidate(table, solnRecs);
@@ -1353,7 +1592,7 @@ public class QRepairServiceTests extends DataCleaningTests {
 		if (type == SearchType.SA_EPS) {
 			logger.log(
 					ProdLevel.PROD,
-					"EXPERIMENT (eps) : EPSILON-CONSTRAINT, MINIMIZE PRIVACY SUBJECT TO CONSTRAINTS ON IND AND CHANGES FN, SIMULATED ANNEALING, START TEMP("
+					"EXPERIMENT (eps evp) : EPSILON-CONSTRAINT, MINIMIZE PRIVACY SUBJECT TO CONSTRAINTS ON IND AND CHANGES FN, SIMULATED ANNEALING, START TEMP("
 							+ startTemp
 							+ "), END TEMP("
 							+ Config.FINAL_TEMP
@@ -1379,6 +1618,19 @@ public class QRepairServiceTests extends DataCleaningTests {
 					startTemp, Config.FINAL_TEMP_EVP, Config.ALPHA_TEMP_EVP,
 					Config.BEST_ENERGY_EVP, Config.INIT_STRATEGY,
 					Config.IND_NORM_STRAT);
+		} else if (type == SearchType.SA_EPS_LEX) {
+			logger.log(
+					ProdLevel.PROD,
+					"EXPERIMENT (eps lex evp) : EPSILON-HIERARCHICAL, MINIMIZE PRIVACY, THEN IND (SUBJECT TO CONSTRAINT ON PVT), THEN CHANGES (SUBJECT TO CONSTRAINT ON PVT AND IND), SIMULATED ANNEALING, START TEMP("
+							+ startTemp
+							+ "), END TEMP("
+							+ Config.FINAL_TEMP
+							+ ")");
+
+			search = new SimulAnnealEpsLex(constructEpsLexObjective(constraint,
+					table), startTemp, Config.FINAL_TEMP_EVP,
+					Config.ALPHA_TEMP_EVP, Config.BEST_ENERGY_EVP,
+					Config.INIT_STRATEGY, Config.IND_NORM_STRAT);
 		}
 
 		logger.log(ProdLevel.PROD, "\nConstraint : " + constraint);

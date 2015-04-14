@@ -50,8 +50,7 @@ public class SimulAnnealEpsThreshold extends Search {
 	@Override
 	public Set<Candidate> calcOptimalSolns(Constraint constraint,
 			List<Match> tgtMatches, TargetDataset tgtDataset,
-			MasterDataset mDataset, InfoContentTable table,
-			boolean shdReturnInit) {
+			MasterDataset mDataset, InfoContentTable table) {
 
 		int numIter = (int) Math.ceil(Math.log(finalTemperature
 				/ initTemperature)
@@ -82,11 +81,6 @@ public class SimulAnnealEpsThreshold extends Search {
 				positionToChoices, pInfo.getPositionToExactMatch(),
 				pInfo.getTidToPosition());
 
-		if (shdReturnInit) {
-			solns.add(currentSoln);
-			return solns;
-		}
-
 		if (currentSoln == null || currentSoln.getRecommendations() == null
 				|| currentSoln.getRecommendations().isEmpty())
 			return null;
@@ -104,7 +98,7 @@ public class SimulAnnealEpsThreshold extends Search {
 		currentSoln.setPvtOut(currentFnOut);
 
 		// Flexible epsilon.
-		epsilon = boundedFn.getEpsilon() * currentFnOut;
+		epsilon = boundedFn.getEpsilon();
 
 		for (Objective otherFn : otherFns) {
 			double bOut = otherFn.out(currentSoln, tgtDataset, mDataset,

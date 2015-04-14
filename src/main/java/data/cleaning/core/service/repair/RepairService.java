@@ -18,7 +18,7 @@ public interface RepairService {
 
 	Set<Candidate> calcOptimalSolns(Constraint constraint,
 			List<Match> tgtMatches, Search search, TargetDataset tgtDataset,
-			MasterDataset mDataset, InfoContentTable table, boolean shdReturnInit);
+			MasterDataset mDataset, InfoContentTable table);
 
 	/**
 	 * Bigger violation chunk is ordered first.

@@ -36,7 +36,7 @@ import data.cleaning.core.utils.ProdLevel;
 
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
-public class QDatasetServiceTests {
+public class DatasetServiceTests {
 
 	@Autowired
 	private DatasetService datasetService;
@@ -45,7 +45,7 @@ public class QDatasetServiceTests {
 	@Autowired
 	private RepairService repairService;
 	private static final Logger logger = Logger
-			.getLogger(QDatasetServiceTests.class);
+			.getLogger(DatasetServiceTests.class);
 
 	protected float simThreshold;
 
@@ -100,15 +100,10 @@ public class QDatasetServiceTests {
 
 				logger.log(ProdLevel.PROD, "\nIMDB URL : " + origUrl);
 
-				for (float percConsErr : Config.CONSQ_ERR_INJECT) {
-					logger.log(ProdLevel.PROD, "\npercConsErr : " + percConsErr);
-
-					reloadConfigs(percConsErr);
-					testConstructGroundTruth();
-					testConstructTargetErrs();
-					testCorrectnessOfErrorMetadata();
-					testConstructMaster();
-				}
+				testConstructGroundTruth();
+				testConstructTargetErrs();
+				testCorrectnessOfErrorMetadata();
+				testConstructMaster();
 			}
 		} else {
 			// Cumulative err creation is quite different for inc tuples.
@@ -184,7 +179,7 @@ public class QDatasetServiceTests {
 				tgtErrMetaUrls.add(new String(tgtErrMetaUrl));
 			}
 
-			errgenService.addErrsCumulIncTuplesSameNumChunks(types,
+			errgenService.addErrorsCumulativeIncTuples(types,
 					desiredTgtRecsArr, Config.ROUGH_CHUNK_SIZE,
 					0.20d * Config.CONSQ_ERR_INJECT[0],
 					Config.CONSQ_ERR_INJECT[0], gtUrl, tgtErrUrls, fdUrl,
@@ -379,7 +374,7 @@ public class QDatasetServiceTests {
 			tgtErrMetaUrls.add(new String(tgtErrMetaUrl));
 		}
 
-		errgenService.addErrsCumul(types, desiredTgtRecs,
+		errgenService.addErrorsCumulative(types, desiredTgtRecs,
 				Config.ROUGH_CHUNK_SIZE, percAntsErrs, percConsErrs, gtUrl,
 				tgtErrUrls, fdUrl, tgtErrMetaUrls, datasetSeparator,
 				datasetQuoteChar, Config.NUM_NON_MATCH);
@@ -464,7 +459,7 @@ public class QDatasetServiceTests {
 		for (float percConsErr : Config.CONSQ_ERR_INJECT) {
 			reloadConfigs(percConsErr);
 
-			TargetDataset wErrors = errgenService.addErrsRand(types,
+			TargetDataset wErrors = errgenService.addErrorsRandom(types,
 					desiredTgtRecs, Config.ROUGH_CHUNK_SIZE,
 					0.20 * percConsErr, percConsErr, gtUrl, tgtErrUrl,
 					tgtErrName, fdUrl, tgtErrMetaUrl, datasetSeparator,
@@ -535,12 +530,12 @@ public class QDatasetServiceTests {
 
 		ErrorType e1 = new ErrorType(ErrorType.Type.IN_DOMAIN_SIMILAR, 0.49f);
 		Map<Float, Float> simToDistribution = new LinkedHashMap<>();
-		int numSteps = (int) (aboveThresholdDistr / 0.2f);
+		int numSteps = (int) (aboveThresholdDistr / 0.1f);
 		float diff = 1f - (simThreshold + Config.FLOAT_EQUALIY_EPSILON);
 
 		for (int i = 0; i < numSteps; i++) {
 			simToDistribution.put(simThreshold + (diff * rand.nextFloat()),
-					0.2f);
+					0.1f);
 		}
 
 		simToDistribution.put(simThreshold * 0.8f, belowThresholdDistr);
@@ -628,4 +623,128 @@ public class QDatasetServiceTests {
 		return rids;
 	}
 
+	/**
+	 * Quick and dirty method. Split up the location column into 3 separate
+	 * columns.
+	 * 
+	 * @throws Exception
+	 */
+	@Test
+	public void testProprocessBooksDataset() throws Exception {
+		TargetDataset tgtDataset = datasetService.loadTargetDataset(
+				"datasets/books/books_raw_1m.csv", Config.booksOrigFileName,
+				Config.BOOKS_ORIG_FD_URL, Config.DATASET_SEPARATOR,
+				Config.DATASET_DOUBLE_QUOTE_CHAR);
+
+		for (Record r : tgtDataset.getRecords()) {
+			Map<String, String> cToV = r.getColsToVal();
+			String s = cToV.get("user_location");
+
+			if (s != null && !s.isEmpty()) {
+				String[] location = s.split(",");
+				for (int i = 0; i < location.length; i++) {
+					String details = location[i].trim();
+					if (details == null || details.isEmpty()) {
+						details = "";
+					}
+					if (i == 0) {
+						cToV.put("city", details);
+					} else if (i == 1) {
+						cToV.put("state", details);
+					} else {
+						cToV.put("country", details);
+					}
+				}
+
+			} else {
+				cToV.put("city", "");
+				cToV.put("state", "");
+				cToV.put("country", "");
+			}
+
+			cToV.remove("user_location");
+		}
+
+		datasetService.saveDataset(tgtDataset.getRecords(),
+				"datasets/books/books_1m.csv", Config.DATASET_SEPARATOR,
+				Config.DATASET_DOUBLE_QUOTE_CHAR);
+	}
+
+	/**
+	 * Quick and dirty method. Split up the location column into 3 separate
+	 * columns.
+	 * 
+	 * @throws Exception
+	 */
+	@Test
+	public void testIncRecsBooksDataset() throws Exception {
+		TargetDataset tgtDataset = datasetService.loadTargetDataset(
+				"datasets/books/books_raw_1m.csv", Config.booksOrigFileName,
+				Config.BOOKS_ORIG_FD_URL, Config.DATASET_SEPARATOR,
+				Config.DATASET_DOUBLE_QUOTE_CHAR);
+
+		String[] origUrls = new String[] { "datasets/books/books_500k.csv",
+				"datasets/books/books_1m.csv", "datasets/books/books_1.5m.csv",
+				"datasets/books/books_2m.csv", "datasets/books/books_2.5m.csv",
+				"datasets/books/books_3m.csv" };
+		List<Record> tgtRecs = tgtDataset.getRecords();
+		for (int i = 0; i < origUrls.length; i++) {
+			List<Record> toSave = new ArrayList<>();
+			int toAdd = 0;
+			if (i == 0) {
+				toAdd = 500000;
+			} else if (i == 1) {
+				toAdd = 1000000;
+			} else if (i == 2) {
+				toAdd = 1500000;
+			} else if (i == 3) {
+				toAdd = 2000000;
+			} else if (i == 4) {
+				toAdd = 2500000;
+			} else if (i == 5) {
+				toAdd = 3000000;
+			}
+
+			while (toSave.size() < toAdd) {
+				Record r = tgtRecs.get(rand.nextInt(tgtRecs.size()));
+				toSave.add(r);
+			}
+
+			datasetService.saveDataset(toSave, origUrls[i],
+					Config.DATASET_SEPARATOR, Config.DATASET_DOUBLE_QUOTE_CHAR);
+		}
+
+	}
+
+	/**
+	 * Rough and dirty method.
+	 * 
+	 * @throws Exception
+	 */
+	@Test
+	public void testPrepBooksForScalability() throws Exception {
+
+		String[] origUrls = new String[] { "datasets/books/books_500k.csv",
+				"datasets/books/books_1m.csv", "datasets/books/books_1.5m.csv",
+				"datasets/books/books_2m.csv", "datasets/books/books_2.5m.csv",
+				"datasets/books/books_3m.csv" };
+		String[] origNames = new String[] { "books_500k", "books_1m",
+				"books_1.5m", "books_2m", "books_2.5m", "books_3m" };
+
+		for (int i = 0; i < origUrls.length; i++) {
+
+			Config.booksOrigFileUrl = origUrls[i];
+			Config.booksOrigFileName = origNames[i];
+			origUrl = Config.booksOrigFileUrl;
+			origName = Config.booksOrigFileName;
+
+			logger.log(ProdLevel.PROD, "\nBOOKS URL : " + origUrl);
+
+			testConstructGroundTruth();
+			testConstructTargetErrs();
+			testCorrectnessOfErrorMetadata();
+			testConstructMaster();
+		}
+
+	}
 }
