@@ -269,13 +269,6 @@ public class DatasetServiceImpl implements DatasetService {
 							if ("\"".equals(val) || "'".equals(val)) {
 								colsToVal.put(cols.get(i).trim(), "");
 							} else {
-								if (cols.get(i) == null) {
-									logger.log(ProdLevel.PROD, "rid : " + count
-											+ " has a null col."
-											+ " colnum #: " + i
-											+ ", and colmap is :" + cols);
-								}
-
 								colsToVal.put(cols.get(i).trim(), val);
 							}
 						}
