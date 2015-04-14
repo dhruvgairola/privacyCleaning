@@ -164,7 +164,7 @@
 				<configuration>
 					<argLine>-Djava.library.path=/Library/Frameworks/R.framework/Resources/library/rJava/jri/</argLine>
 					<argLine>-Xms6144m</argLine>
-					<argLine>-Xmx18432m</argLine>
+					<argLine>-Xmx10240m</argLine>
 				</configuration>
 				<version>2.17</version>
 			</plugin>

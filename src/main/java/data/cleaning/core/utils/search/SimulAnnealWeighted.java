@@ -45,8 +45,7 @@ public class SimulAnnealWeighted extends Search {
 	@Override
 	public Set<Candidate> calcOptimalSolns(Constraint constraint,
 			List<Match> tgtMatches, TargetDataset tgtDataset,
-			MasterDataset mDataset, InfoContentTable table,
-			boolean shdReturnInit) {
+			MasterDataset mDataset, InfoContentTable table) {
 		int numIter = (int) Math.ceil(Math.log(finalTemperature
 				/ initTemperature)
 				/ Math.log(alpha));
@@ -96,12 +95,6 @@ public class SimulAnnealWeighted extends Search {
 		Candidate currentSoln = getInitialSoln(strategy, sigSize,
 				positionToChoices, pInfo.getPositionToExactMatch(),
 				pInfo.getTidToPosition());
-
-		if(shdReturnInit) {
-			solns.add(currentSoln);
-			return solns;
-		}
-		
 		List<Recommendation> currentSolnRecs = currentSoln.getRecommendations();
 
 		if (currentSoln == null || currentSolnRecs == null

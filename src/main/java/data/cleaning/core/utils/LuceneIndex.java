@@ -272,7 +272,7 @@ public class LuceneIndex {
 				logger.log(ProdLevel.PROD, "EXCEPTION : " + e.getMessage());
 			}
 
-			if (randDoc != null && randDoc.get(col) != null) {
+			if (randDoc != null) {
 				toRet.add(randDoc.get(col));
 			}
 

@@ -15,6 +15,8 @@ import data.cleaning.core.service.repair.impl.Recommendation;
 import data.cleaning.core.utils.Config;
 import data.cleaning.core.utils.DebugLevel;
 import data.cleaning.core.utils.ProdLevel;
+import data.cleaning.core.utils.objectives.CleaningObjective;
+import data.cleaning.core.utils.objectives.CustomCleaningObjective;
 import data.cleaning.core.utils.objectives.IndNormStrategy;
 import data.cleaning.core.utils.objectives.Objective;
 
@@ -46,8 +48,7 @@ public class SimulAnnealEps extends Search {
 	@Override
 	public Set<Candidate> calcOptimalSolns(Constraint constraint,
 			List<Match> tgtMatches, TargetDataset tgtDataset,
-			MasterDataset mDataset, InfoContentTable table,
-			boolean shdReturnInit) {
+			MasterDataset mDataset, InfoContentTable table) {
 
 		int numIter = (int) Math.ceil(Math.log(finalTemperature
 				/ initTemperature)
@@ -78,14 +79,18 @@ public class SimulAnnealEps extends Search {
 				positionToChoices, pInfo.getPositionToExactMatch(),
 				pInfo.getTidToPosition());
 
-		if (shdReturnInit) {
-			solns.add(currentSoln);
-			return solns;
-		}
-
 		if (currentSoln == null || currentSoln.getRecommendations() == null
 				|| currentSoln.getRecommendations().isEmpty())
 			return null;
+
+		for (Objective bounded : boundedFns) {
+			if (bounded instanceof CustomCleaningObjective
+					|| bounded instanceof CleaningObjective) {
+				// This is needed for the ind optimization to work.
+				double bOut = bounded.out(currentSoln, tgtDataset, mDataset,
+						maxPvt, maxInd, recSize);
+			}
+		}
 
 		int numBitFlipNeighb = sigSize;
 

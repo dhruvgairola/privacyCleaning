@@ -58,8 +58,7 @@ public class SimulAnnealEpsFlexible extends Search {
 	@Override
 	public Set<Candidate> calcOptimalSolns(Constraint constraint,
 			List<Match> tgtMatches, TargetDataset tgtDataset,
-			MasterDataset mDataset, InfoContentTable table,
-			boolean shdReturnInit) {
+			MasterDataset mDataset, InfoContentTable table) {
 
 		int numIter = (int) Math.ceil(Math.log(finalTemperature
 				/ initTemperature)
@@ -89,11 +88,6 @@ public class SimulAnnealEpsFlexible extends Search {
 		Candidate currentSoln = getInitialSoln(strategy, sigSize,
 				positionToChoices, pInfo.getPositionToExactMatch(),
 				pInfo.getTidToPosition());
-
-		if (shdReturnInit) {
-			solns.add(currentSoln);
-			return solns;
-		}
 
 		setFlexiEpsilonInd(currentSoln, tgtDataset, mDataset, maxPvt, maxInd,
 				recSize);
