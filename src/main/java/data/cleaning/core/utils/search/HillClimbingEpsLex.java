@@ -35,8 +35,7 @@ public class HillClimbingEpsLex extends Search {
 	@Override
 	public Set<Candidate> calcOptimalSolns(Constraint constraint,
 			List<Match> tgtMatches, TargetDataset tgtDataset,
-			MasterDataset mDataset, InfoContentTable table,
-			boolean shdReturnInit) {
+			MasterDataset mDataset, InfoContentTable table) {
 		Set<Candidate> solns = new HashSet<>();
 		double maxInd = calcMaxInd(constraint, tgtDataset.getRecords(),
 				indNormStrat);
@@ -61,7 +60,7 @@ public class HillClimbingEpsLex extends Search {
 				HillClimbingThreshold h = new HillClimbingThreshold(fns.get(i),
 						strategy, indNormStrat);
 				solns.addAll(h.calcOptimalSolns(constraint, tgtMatches,
-						tgtDataset, mDataset, table, shdReturnInit));
+						tgtDataset, mDataset, table));
 			} else {
 				solns = prune(constraint, solns, fns.get(i), tgtDataset,
 						mDataset, table, maxPvt, maxInd, recSize);

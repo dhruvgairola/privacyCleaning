@@ -11,8 +11,7 @@ public interface ErrgenService {
 
 	/**
 	 * Complicated implementation. Only used for preprocessing to generate
-	 * datasets with errors, hence not completely optimized for speed. Num
-	 * chunks increases as error rate increases.
+	 * datasets with errors, hence not completely optimized for speed.
 	 * 
 	 * @param types
 	 *            - types of errors
@@ -38,7 +37,7 @@ public interface ErrgenService {
 	 * @return
 	 * @throws Exception
 	 */
-	TargetDataset addErrsRand(List<ErrorType> types, int desiredTgtSize,
+	TargetDataset addErrorsRandom(List<ErrorType> types, int desiredTgtSize,
 			int roughChunkSize, double percentageAnt, double percentageCons,
 			String gtUrl, String tgtOutUrl, String tgtOutName, String fdUrl,
 			String errMetadataUrl, char separator, char quoteChar)
@@ -50,7 +49,7 @@ public interface ErrgenService {
 	 * cumulative errors while the lower percentages are subsets of this. Also,
 	 * no target dataset is returned since all the datasets are created at once
 	 * and returning all of them as a list at once would take up too much
-	 * memory. Num chunks increases as error rate increases.
+	 * memory.
 	 * 
 	 * @param types
 	 * @param desiredTgtSize
@@ -66,7 +65,7 @@ public interface ErrgenService {
 	 * @param numNonMatch
 	 * @throws Exception
 	 */
-	void addErrsCumul(List<ErrorType> types, int desiredTgtSize,
+	void addErrorsCumulative(List<ErrorType> types, int desiredTgtSize,
 			int roughChunkSize, double[] percentageAnt,
 			double[] percentageCons, String gtUrl, List<String> tgtOutUrls,
 			String fdUrl, List<String> errMetadataUrls, char separator,
@@ -74,34 +73,7 @@ public interface ErrgenService {
 
 	/**
 	 * Use this for building cumulative error tgt datasets for increasing
-	 * tuples. Num chunks increases as dataset size increases. Use for
-	 * performance testing only, not for quality testing.
-	 * 
-	 * @param types
-	 * @param desiredTgtSizes
-	 * @param roughChunkSizeSmallest
-	 *            - this is the rough chunk size of the smallest dataset.
-	 * @param percentageAnt
-	 * @param percentageCons
-	 * @param gtUrl
-	 * @param tgtOutUrls
-	 * @param fdUrl
-	 * @param errMetadataUrls
-	 * @param separator
-	 * @param quoteChar
-	 * @param numViolChunks
-	 * @throws Exception
-	 */
-	void addErrsCumulIncTuplesPerformance(List<ErrorType> types,
-			int[] desiredTgtSizes, int roughChunkSizeSmallest,
-			double percentageAnt, double percentageCons, String gtUrl,
-			List<String> tgtOutUrls, String fdUrl,
-			List<String> errMetadataUrls, char separator, char quoteChar,
-			int[] numViolChunks) throws Exception;
-
-	/**
-	 * Use this for building cumulative error tgt datasets for increasing
-	 * tuples. Num chunks stays the same as dataset size increases.
+	 * tuples.
 	 * 
 	 * @param types
 	 * @param desiredTgtSizes
@@ -118,7 +90,7 @@ public interface ErrgenService {
 	 * @param numNonMatch
 	 * @throws Exception
 	 */
-	void addErrsCumulIncTuplesSameNumChunks(List<ErrorType> types,
+	void addErrorsCumulativeIncTuples(List<ErrorType> types,
 			int[] desiredTgtSizes, int roughChunkSizeSmallest,
 			double percentageAnt, double percentageCons, String gtUrl,
 			List<String> tgtOutUrls, String fdUrl,

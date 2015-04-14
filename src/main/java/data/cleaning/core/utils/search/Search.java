@@ -47,8 +47,7 @@ public abstract class Search {
 
 	public abstract Set<Candidate> calcOptimalSolns(Constraint constraint,
 			List<Match> tgtMatches, TargetDataset tgtDataset,
-			MasterDataset mDataset, InfoContentTable table,
-			boolean shdReturnInit);
+			MasterDataset mDataset, InfoContentTable table);
 
 	public char[] genRandSig(int randSigSize) {
 		if (randSigSize < 1)
@@ -249,9 +248,8 @@ public abstract class Search {
 			// Select the first non exact match.
 			for (int bestChoice = 0; bestChoice < choices.keySet().size(); bestChoice++) {
 				Choice c = choices.get(bestChoice);
-				if (c == null)
-					break;
-
+				if(c == null) break;
+				
 				if (Math.abs(1f - c.getDist()) > Config.FLOAT_EQUALIY_EPSILON) {
 					choiceNum = bestChoice;
 					break;

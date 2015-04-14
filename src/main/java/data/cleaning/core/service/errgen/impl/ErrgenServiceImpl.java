@@ -45,7 +45,9 @@ import au.com.bytecode.opencsv.CSVWriter;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.HashMultimap;
+import com.google.common.collect.HashMultiset;
 import com.google.common.collect.Multimap;
+import com.google.common.collect.Multiset;
 import com.google.common.io.ByteStreams;
 
 import data.cleaning.core.service.dataset.DatasetService;
@@ -384,11 +386,11 @@ public class ErrgenServiceImpl implements ErrgenService {
 
 	@SuppressWarnings("deprecation")
 	@Override
-	public TargetDataset addErrsRand(List<ErrorType> types, int desiredTgtSize,
-			int roughChunkSize, double percentageAnt, double percentageCons,
-			String gtUrl, String tgtOutUrl, String tgtOutName, String fdUrl,
-			String errMetadataUrl, char separator, char quoteChar)
-			throws Exception {
+	public TargetDataset addErrorsRandom(List<ErrorType> types,
+			int desiredTgtSize, int roughChunkSize, double percentageAnt,
+			double percentageCons, String gtUrl, String tgtOutUrl,
+			String tgtOutName, String fdUrl, String errMetadataUrl,
+			char separator, char quoteChar) throws Exception {
 		GroundTruthDataset gtDataset = datasetService.loadGroundTruthDataset(
 				gtUrl, "", fdUrl, 1, separator, quoteChar);
 		List<Constraint> constraints = gtDataset.getConstraints();
@@ -425,8 +427,7 @@ public class ErrgenServiceImpl implements ErrgenService {
 
 		// The clean ids are not part of the seedset from which errors are
 		// created.
-		List<Record> ss = groundTruth.subList(
-				Math.min(groundTruth.size() - 1, cleanSetSize),
+		List<Record> ss = groundTruth.subList(Math.min(numClean, cleanSetSize),
 				groundTruth.size());
 		List<Record> seedSet = new ArrayList<>();
 
@@ -470,8 +471,7 @@ public class ErrgenServiceImpl implements ErrgenService {
 		// [percentageCons, percentageCons + percentageAnt] of the "tgtRecs"
 		// size. At this point, we don't really care about the "types" of
 		// errors.
-		tgtRecs = trimOrAdd(constraints, tgtRecs, numErrsCons, numErrsAnt,
-				desiredTgtSize);
+		trimOrAdd(constraints, tgtRecs, numErrsCons, numErrsAnt, desiredTgtSize);
 
 		// Need to do this in order to get the correct ids for the target
 		// tuples.
@@ -658,78 +658,155 @@ public class ErrgenServiceImpl implements ErrgenService {
 		return newR;
 	}
 
-	private List<Record> trimOrAdd(List<Constraint> constraints,
-			List<Record> tgtRecs, int numErrsCons, int numErrsAnt,
-			int desiredTgtSize) {
-		int count = 0;
-		List<Violations> currentViols = new ArrayList<>();
-		List<ErrorMetadata> currentEmds = new ArrayList<>();
+	private void trimOrAdd(List<Constraint> constraints, List<Record> tgtRecs,
+			int numErrsCons, int numErrsAnt, int desiredTgtSize) {
+		// How many FDs does 1 record violate?
+		Multiset<Record> countsFDsViol = HashMultiset.create();
 
-		for (Record tgtRec : tgtRecs) {
-			ErrorMetadata emd = tgtRec.getErrMetadata();
-			if (emd != null) {
-				currentEmds.add(tgtRec.getErrMetadata());
-			}
-		}
-
+		int totViols = 0;
 		for (int i = 0; i < constraints.size(); i++) {
 			Constraint constraint = constraints.get(i);
 			Violations v = repairService.calcViolations(tgtRecs, constraint);
-			count += v.getViolMap().size();
-			currentViols.add(v);
+			Multimap<String, Record> vMap = v.getViolMap();
+
+			for (String pattern : vMap.keySet()) {
+				Collection<Record> recs = vMap.get(pattern);
+				for (Record r : recs) {
+					countsFDsViol.add(r);
+				}
+			}
+
+			totViols += vMap.size();
 		}
-		logger.log(ProdLevel.PROD, "Currently, there are " + count + " errs.");
 
-		if (count < numErrsCons) {
-			logger.log(ProdLevel.PROD, "Add errors.");
+		logger.log(ProdLevel.PROD, "Total viols before :" + totViols);
 
-			List<RecordViolInfo> addable = findRedundantRecordsOrdered(
-					constraints, currentEmds, currentViols);
+		if (totViols < numErrsCons) {
+			// Maintain min heap.
+			Queue<Violations> viols = new PriorityQueue<>(constraints.size(),
+					new Comparator<Violations>() {
 
-			while (count < numErrsCons) {
-				if (addable == null || addable.isEmpty()) {
-					logger.log(ProdLevel.PROD, "Can't add at all! This is bad.");
+						@Override
+						public int compare(Violations o1, Violations o2) {
+							if (o1.getViolMap().size() > o2.getViolMap().size()) {
+								return 1;
+							} else if (o1.getViolMap().size() < o2.getViolMap()
+									.size()) {
+								return -1;
+							} else {
+								return 0;
+							}
+						}
+					});
+
+			for (Constraint constraint : constraints) {
+				Violations v = repairService
+						.calcViolations(tgtRecs, constraint);
+				viols.add(v);
+			}
+
+			int numAdded = 0;
+
+			int deficit = numErrsCons - totViols;
+			logger.log(ProdLevel.PROD, deficit
+					+ " more errors need to be added.");
+
+			while (numAdded <= deficit) {
+				// Add.
+				Violations v = viols.peek();
+				Multimap<String, Record> vMap = v.getViolMap();
+				boolean shdBreak = false;
+
+				for (String ant : vMap.keySet()) {
+					Collection<Record> vRecs = vMap.get(ant);
+					for (Record vRec : vRecs) {
+						ErrorMetadata vemd = vRec.getErrMetadata();
+
+						// Add viols which were not injected.
+						if (vemd == null || vemd.getErrorsColsToVal() == null
+								|| vemd.getErrorsColsToVal().isEmpty()) {
+							Record copy = copyRecord(vRec);
+							tgtRecs.add(copy);
+							numAdded += countsFDsViol.count(vRec);
+							shdBreak = true;
+							break;
+						}
+					}
+
+					if (shdBreak)
+						break;
+				}
+
+			}
+
+		} else if (totViols >= numErrsCons) {
+			// Maintain max heap.
+			Queue<Violations> viols = new PriorityQueue<>(constraints.size(),
+					new Comparator<Violations>() {
+
+						@Override
+						public int compare(Violations o1, Violations o2) {
+							if (o1.getViolMap().size() > o2.getViolMap().size()) {
+								return -1;
+							} else if (o1.getViolMap().size() < o2.getViolMap()
+									.size()) {
+								return 1;
+							} else {
+								return 0;
+							}
+						}
+					});
+
+			for (Constraint constraint : constraints) {
+				Violations v = repairService
+						.calcViolations(tgtRecs, constraint);
+				viols.add(v);
+			}
+
+			int numRemoved = 0;
+			int surplus = totViols - numErrsCons;
+			logger.log(ProdLevel.PROD, surplus + " errors need to be removed.");
+
+			while (numRemoved <= surplus) {
+				Violations v = viols.peek();
+				Multimap<String, Record> vMap = v.getViolMap();
+
+				if (vMap.isEmpty()) {
+					logger.log(ProdLevel.PROD, "Cannot remove surplus.");
 					break;
 				}
 
-				RecordViolInfo rvi = addable.get(rand.nextInt(addable.size()));
-				Record toCopy = rvi.getRecord();
-				// Do this bec we don't want to inadvertently inc num emds.
-				toCopy.setErrMetadata(null);
-				Record copy = copyRecord(toCopy);
-				count += rvi.getConstraints().size();
-				tgtRecs.add(copy);
-			}
+				String pattern = vMap.keySet().iterator().next();
+				Collection<Record> unsat = vMap.get(pattern);
+				Record toRemove = unsat.iterator().next();
+				// Below removes it from vMap also.
+				unsat.remove(toRemove);
+				tgtRecs.remove(toRemove);
 
-			return tgtRecs;
+				// Special case. Can't have a violation with only 1 record.
+				if (unsat.size() == 1) {
+					Record toAlsoRemove = unsat.iterator().next();
+					unsat.remove(toAlsoRemove);
+					tgtRecs.remove(toAlsoRemove);
+
+					int count = countsFDsViol.count(toRemove)
+							+ countsFDsViol.count(toAlsoRemove);
+					numRemoved += count;
+				} else {
+					int count = countsFDsViol.count(toRemove);
+					numRemoved += count;
+				}
+
+				if (vMap.isEmpty()) {
+					viols.remove(v);
+				}
+
+				// logger.log(ProdLevel.PROD, "# " + numRemoved + ", Removed "
+				// + toRemove);
+
+			}
 		} else {
-			logger.log(ProdLevel.PROD, "Delete errors.");
-			List<RecordViolInfo> deletable = findRedundantRecordsOrdered(
-					constraints, currentEmds, currentViols);
-			Set<Long> toRem = new HashSet<>();
-
-			while (count > numErrsCons) {
-
-				if (deletable == null || deletable.isEmpty()) {
-					logger.log(ProdLevel.PROD,
-							"Can't delete anymore! Could result in errgen problems. "
-									+ count);
-
-					break;
-				}
-
-				RecordViolInfo rvi = deletable.remove(deletable.size() - 1);
-				toRem.add(rvi.getRecord().getId());
-				count -= rvi.getConstraints().size();
-			}
-
-			// Speedy.
-			List<Record> newTgtRecs = new ArrayList<>();
-			for (Record r : tgtRecs) {
-				if (!toRem.contains(r.getId()))
-					newTgtRecs.add(r);
-			}
-			return newTgtRecs;
+			logger.log(ProdLevel.PROD, "Errors were generated perfectly!");
 		}
 	}
 
@@ -816,48 +893,19 @@ public class ErrgenServiceImpl implements ErrgenService {
 		if (Math.abs(sum - 1.0f) > Config.FLOAT_EQUALIY_EPSILON)
 			throw new Exception("The error types don't all sum up to 1.0.");
 
-		int maxViols = numErrs;
-		// Divide the errors across the constraints. Since constraints can
-		// overlap, adding some errors wrt 1 constraint can exceed numErrs
-		// because of viols wrt other constraints. To avoid this, we add errors
-		// in small chunks.
-		int loopFactor = constraints.size() * 150;
-		int quotient = numErrs / loopFactor;
+		int errsPerConstraint = numErrs / constraints.size();
+		for (int i = 0; i < constraints.size(); i++) {
+			Constraint constraint = constraints.get(i);
 
-		for (int i = 0; i < loopFactor; i++) {
-
-			Constraint constraint = constraints.get(i % constraints.size());
-			logger.log(ProdLevel.PROD, "genErrors, " + constraint + ", iter :"
-					+ i);
-
-			int errsPerConstraint = quotient;
-
-			if (i == loopFactor - 1) {
+			// Special case to handle remainders.
+			if (i == constraints.size() - 1) {
 				errsPerConstraint = numErrs;
 			}
 
-			genErrors(constraint, constraints, seedSet, errsPerConstraint,
-					types, tgtRecs, idx, gtNewToOld, isConsError);
+			genErrors(constraint, seedSet, errsPerConstraint, types, tgtRecs,
+					idx, gtNewToOld, isConsError);
 
 			numErrs = numErrs - errsPerConstraint;
-
-			if (areViolsExceeded(maxViols, constraints, tgtRecs))
-				break;
-		}
-	}
-
-	private boolean areViolsExceeded(int maxViols,
-			List<Constraint> constraints, List<Record> tgtRecs) {
-		int currentErrs = 0;
-		for (Constraint c : constraints) {
-			currentErrs += repairService.calcViolations(tgtRecs, c)
-					.getViolMap().size();
-		}
-
-		if (maxViols < currentErrs) {
-			return true;
-		} else {
-			return false;
 		}
 	}
 
@@ -865,8 +913,6 @@ public class ErrgenServiceImpl implements ErrgenService {
 	 * Annoyingly confusing and complicated method.
 	 * 
 	 * @param constraint
-	 * @param constraints
-	 *            - used to measure current total viols.
 	 * @param seedSet
 	 * @param errsPerConstraint
 	 * @param types
@@ -876,10 +922,20 @@ public class ErrgenServiceImpl implements ErrgenService {
 	 * @param isConsError
 	 * @throws Exception
 	 */
-	private void genErrors(Constraint constraint, List<Constraint> constraints,
-			List<Record> seedSet, int errsPerConstraint, List<ErrorType> types,
-			List<Record> tgtRecs, LuceneIndex idx, Map<Long, Long> gtNewToOld,
-			boolean isConsError) throws Exception {
+	private void genErrors(Constraint constraint, List<Record> seedSet,
+			int errsPerConstraint, List<ErrorType> types, List<Record> tgtRecs,
+			LuceneIndex idx, Map<Long, Long> gtNewToOld, boolean isConsError)
+			throws Exception {
+		// Possible because generated errors wrt previous constraint could've
+		// generated errs wrt current one.
+		int initialErrs = repairService.calcViolations(tgtRecs, constraint)
+				.getViolMap().size();
+		if (initialErrs >= errsPerConstraint) {
+			// This case can be handled by postprocessing (method trimOrAdd).
+			return;
+		} else {
+			errsPerConstraint -= initialErrs;
+		}
 
 		// logger.log(ProdLevel.PROD, "Errors reqd : " + errsPerConstraint);
 		List<String> ants = constraint.getAntecedentCols();
@@ -1091,7 +1147,7 @@ public class ErrgenServiceImpl implements ErrgenService {
 		} else if (type.getType() == ErrorType.Type.IN_DOMAIN) {
 			List<String> rand = idx.searchRand(randCol, 1);
 
-			if (rand == null || rand.isEmpty() || rand.get(0) == null
+			if (rand == null || rand.isEmpty()
 					|| rand.get(0).trim().equals(randColVal.trim())) {
 				error.modifyValForExistingCol(
 						randCol,
@@ -1229,7 +1285,7 @@ public class ErrgenServiceImpl implements ErrgenService {
 	}
 
 	@Override
-	public void addErrsCumul(List<ErrorType> types, int desiredTgtSize,
+	public void addErrorsCumulative(List<ErrorType> types, int desiredTgtSize,
 			int roughChunkSize, double[] percentageAnt,
 			double[] percentageCons, String gtUrl, List<String> tgtOutUrls,
 			String fdUrl, List<String> errMetadataUrls, char separator,
@@ -1249,7 +1305,7 @@ public class ErrgenServiceImpl implements ErrgenService {
 		logger.log(ProdLevel.PROD, "\nCreating : " + tgtOutUrl);
 
 		// Build tgt dataset with the highest errors.
-		TargetDataset hErrDataset = addErrsRand(types, desiredTgtSize,
+		TargetDataset hErrDataset = addErrorsRandom(types, desiredTgtSize,
 				roughChunkSize, pAnt, pCons, gtUrl, tgtOutUrl, "", fdUrl,
 				errMetadataUrl, separator, quoteChar);
 		// TargetDataset hErrDataset =
@@ -1760,8 +1816,8 @@ public class ErrgenServiceImpl implements ErrgenService {
 		if (count < numErrors) {
 			logger.log(ProdLevel.PROD, "Add errors.");
 
-			List<RecordViolInfo> addable = findRedundantRecordsOrdered(
-					constraints, currentEmds, currentViols);
+			List<RecordViolInfo> addable = findRedundantRecords(constraints,
+					currentEmds, currentViols);
 
 			while (count < numErrors) {
 				if (addable == null || addable.isEmpty()) {
@@ -1769,10 +1825,7 @@ public class ErrgenServiceImpl implements ErrgenService {
 				}
 
 				RecordViolInfo rvi = addable.get(rand.nextInt(addable.size()));
-				Record toCopy = rvi.getRecord();
-				// Do this bec we don't want to inadvertently inc num emds.
-				toCopy.setErrMetadata(null);
-				Record copy = copyRecord(toCopy);
+				Record copy = copyRecord(rvi.getRecord());
 				Collection<Constraint> cons = rvi.getConstraints();
 
 				for (Constraint con : cons) {
@@ -1787,8 +1840,8 @@ public class ErrgenServiceImpl implements ErrgenService {
 		} else if (count > numErrors) {
 			logger.log(ProdLevel.PROD, "Delete errors.");
 
-			List<RecordViolInfo> deletable = findRedundantRecordsOrdered(
-					constraints, currentEmds, currentViols);
+			List<RecordViolInfo> deletable = findRedundantRecords(constraints,
+					currentEmds, currentViols);
 
 			while (count > numErrors) {
 
@@ -1813,94 +1866,48 @@ public class ErrgenServiceImpl implements ErrgenService {
 	}
 
 	/**
-	 * There recs are redundant. If any element in the list is removed, the
-	 * RecordViolInfo obj contains info about how many violations are lowered.
-	 * The ordering is in ascending order wrt the num of violations (e.g.,
-	 * index 0 violates the least constraints).
+	 * There are recs which are not in the current emd list. Removing any 1
+	 * record in the list will lower the num violations by 1 only (not 2, which
+	 * can happen if the violation is completely corrected OR if the record is
+	 * involved in multiple constraints). Also, adding any 1 record should
+	 * increase the num violations by 1 only (not more than 1, which can happen
+	 * if the record is involved in multiple constraints).
 	 * 
 	 * @param currentEmds
 	 * @param currentViols
 	 * @return
 	 */
-	private List<RecordViolInfo> findRedundantRecordsOrdered(
+	private List<RecordViolInfo> findRedundantRecords(
 			List<Constraint> constraints, List<ErrorMetadata> currentEmds,
 			List<Violations> currentViols) {
-
-		List<RecordViolInfo> nonemdRedundant = new ArrayList<>();
-		// List<RecordViolInfo> emdRedundant = new ArrayList<>();
+		List<RecordViolInfo> redundant = new ArrayList<>();
 		Set<Long> emdIds = getEmdIds(currentEmds);
-		// Multimap<Record, Constraint> emdredundantRecToConstraints =
-		// HashMultimap
-		// .create();
 		Multimap<Record, Constraint> redundantRecToConstraints = HashMultimap
 				.create();
-		Set<Record> essential = new HashSet<>();
-		Set<Record> essentialEmds = new HashSet<>();
 
 		for (Violations v : currentViols) {
-			Multimap<String, Record> violMap = v.getViolMap();
 			Constraint c = v.getConstraint();
-			List<String> cons = c.getConsequentCols();
+			Multimap<String, Record> violMap = v.getViolMap();
 
 			for (String key : violMap.keySet()) {
 				Collection<Record> recs = violMap.get(key);
 
-				List<Record> emds = new ArrayList<>();
-				List<Record> nonemds = new ArrayList<>();
-				Set<String> emdCons = new HashSet<>();
+				boolean nonEmdAdded = false;
 
 				for (Record r : recs) {
 					if (emdIds.contains(r.getId())) {
-						emds.add(r);
-						String ec = r.getRecordStr(cons);
-						if (emdCons.size() == 0
-								|| (emdCons.size() == 1 && !emdCons
-										.contains(ec))) {
-							essentialEmds.add(r);
-						}
-						emdCons.add(ec);
-					} else {
-						nonemds.add(r);
-					}
-				}
-
-				// All the emd recs have the same consq.
-				if (emdCons.size() == 1) {
-					String s = emdCons.iterator().next();
-					// Any nonemd rec with a diff consq is essential.
-					for (Record nonemd : nonemds) {
-						if (!nonemd.getRecordStr(cons).equals(s)) {
-							essential.add(nonemd);
-							break;
-						}
-					}
-
-					// Add some spare emds that are redundant.
-					if (emds.size() > 0) {
-						essentialEmds.add(emds.get(0));
-					}
-				}
-			}
-
-		}
-
-		for (Violations v : currentViols) {
-			Constraint c = v.getConstraint();
-			Multimap<String, Record> violMap = v.getViolMap();
-
-			for (String key : violMap.keySet()) {
-				Collection<Record> recs = violMap.get(key);
-
-				for (Record r : recs) {
-
-					if (!essential.contains(r) && !emdIds.contains(r.getId())) {
+						continue;
+					} else if (nonEmdAdded) {
 						redundantRecToConstraints.put(r, c);
+					} else {
+						// Even though current record is not in emdIds, we count
+						// this record as being non-redundant (otherwise the
+						// violation chunk would disappear if we removed this
+						// record). However, subsequent non-emd records are
+						// redundant.
+						nonEmdAdded = true;
 					}
 
-					// if (emdIds.contains(r.getId())
-					// && !essentialEmds.contains(r)) {
-					// emdredundantRecToConstraints.put(r, c);
-					// }
 				}
 			}
 
@@ -1910,32 +1917,25 @@ public class ErrgenServiceImpl implements ErrgenService {
 			RecordViolInfo rvi = new RecordViolInfo();
 			rvi.setRecord(r);
 			rvi.setConstraints(redundantRecToConstraints.get(r));
-			nonemdRedundant.add(rvi);
+			redundant.add(rvi);
 		}
 
-		// for (Record r : emdredundantRecToConstraints.keySet()) {
-		// RecordViolInfo rvi = new RecordViolInfo();
-		// rvi.setRecord(r);
-		// rvi.setConstraints(emdredundantRecToConstraints.get(r));
-		// emdRedundant.add(rvi);
-		// }
-
-		Collections.sort(nonemdRedundant, new Comparator<RecordViolInfo>() {
+		Collections.sort(redundant, new Comparator<RecordViolInfo>() {
 
 			@Override
 			public int compare(RecordViolInfo o1, RecordViolInfo o2) {
 				if (o1.getConstraints().size() > o2.getConstraints().size()) {
-					return 1;
+					return -1;
 				} else if (o1.getConstraints().size() < o2.getConstraints()
 						.size()) {
-					return -1;
+					return 1;
 				} else {
 					return 0;
 				}
 			}
 		});
 
-		return nonemdRedundant;
+		return redundant;
 	}
 
 	class RecordViolInfo {
@@ -1986,49 +1986,7 @@ public class ErrgenServiceImpl implements ErrgenService {
 	}
 
 	@Override
-	public void addErrsCumulIncTuplesPerformance(List<ErrorType> types,
-			int[] desiredTgtSizes, int roughChunkSizeSmallest,
-			double percentageAnt, double percentageCons, String gtUrl,
-			List<String> tgtOutUrls, String fdUrl,
-			List<String> errMetadataUrls, char separator, char quoteChar,
-			int[] numViolChunks) throws Exception {
-		// TODO : Implement
-		// Gather some metadata about dataset with highest errors.
-		String tgtOutUrl = tgtOutUrls.get(0);
-		String errMetadataUrl = errMetadataUrls.get(0);
-
-		logger.log(ProdLevel.PROD, "\nCreating : " + tgtOutUrl);
-
-		// Build tgt dataset with the lowest errors.
-		TargetDataset lErrDataset = addErrsRand(types, desiredTgtSizes[0],
-				roughChunkSizeSmallest, percentageAnt, percentageCons, gtUrl,
-				tgtOutUrl, "", fdUrl, errMetadataUrl, separator, quoteChar);
-		// TargetDataset lErrDataset =
-		// datasetService.loadTargetDataset(tgtOutUrl,
-		// "", fdUrl, separator, quoteChar);
-
-		logger.log(ProdLevel.PROD, "Created : " + tgtOutUrl);
-
-		// Get objects related to the dataset with the highest errors.
-		List<Constraint> constraints = lErrDataset.getConstraints();
-
-		dummyErrorRecordId = desiredTgtSizes[desiredTgtSizes.length - 1] + 1;
-
-		List<Record> innocuous = findInnocuousRecs(constraints,
-				lErrDataset.getRecords(), datasetService.loadErrMetadata(
-						errMetadataUrl, separator, quoteChar));
-
-		for (int i = 1; i < desiredTgtSizes.length; i++) {
-			// createTgtCumulIncTuples(constraints, innocuous,
-			// percentageCons, errMetadataUrls.get(i),
-			// errMetadataUrls.get(i - 1), tgtOutUrls.get(i),
-			// tgtOutUrls.get(i - 1), fdUrl, desiredTgtSizes[i],
-			// separator, quoteChar, numViolChunks[i], numViolChunks[0]);
-		}
-	}
-
-	@Override
-	public void addErrsCumulIncTuplesSameNumChunks(List<ErrorType> types,
+	public void addErrorsCumulativeIncTuples(List<ErrorType> types,
 			int[] desiredTgtSizes, int roughChunkSizeSmallest,
 			double percentageAnt, double percentageCons, String gtUrl,
 			List<String> tgtOutUrls, String fdUrl,
@@ -2041,7 +1999,7 @@ public class ErrgenServiceImpl implements ErrgenService {
 		logger.log(ProdLevel.PROD, "\nCreating : " + tgtOutUrl);
 
 		// Build tgt dataset with the lowest errors.
-		TargetDataset lErrDataset = addErrsRand(types, desiredTgtSizes[0],
+		TargetDataset lErrDataset = addErrorsRandom(types, desiredTgtSizes[0],
 				roughChunkSizeSmallest, percentageAnt, percentageCons, gtUrl,
 				tgtOutUrl, "", fdUrl, errMetadataUrl, separator, quoteChar);
 		// TargetDataset lErrDataset =
@@ -2060,7 +2018,7 @@ public class ErrgenServiceImpl implements ErrgenService {
 						errMetadataUrl, separator, quoteChar));
 
 		for (int i = 1; i < desiredTgtSizes.length; i++) {
-			createTgtCumulIncTuplesSameChunks(constraints, innocuous,
+			createTgtDatasetsCumulativeIncTuples(constraints, innocuous,
 					percentageCons, errMetadataUrls.get(i),
 					errMetadataUrls.get(i - 1), tgtOutUrls.get(i),
 					tgtOutUrls.get(i - 1), fdUrl, desiredTgtSizes[i],
@@ -2068,7 +2026,7 @@ public class ErrgenServiceImpl implements ErrgenService {
 		}
 	}
 
-	private void createTgtCumulIncTuplesSameChunks(
+	private void createTgtDatasetsCumulativeIncTuples(
 			List<Constraint> constraints, List<Record> innocuous,
 			double percentageCons, String errMetadataUrlCurr,
 			String errMetadataUrlPrev, String tgtOutUrlCurr,

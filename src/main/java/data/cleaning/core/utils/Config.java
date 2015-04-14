@@ -20,40 +20,24 @@ public class Config {
 	// Chunk size is the size of a violation chunk (LHS is the same and RHS is
 	// different). Choose wisely bec. for simul annealing, you will need to
 	// increase num iterations if chunk is larger.
-	public static int ROUGH_CHUNK_SIZE = 100;
-	public static final ErrorGenStrategy ERR_GEN_STRATEGY = ErrorGenStrategy.RANDOM;
+	public static final int ROUGH_CHUNK_SIZE = 25;
+	public static final ErrorGenStrategy ERR_GEN_STRATEGY = ErrorGenStrategy.CUMUL_SORT_SWAP_MATCH;
 	// IMDB 50k increasing errors
 	// public static final int[] NUM_NON_MATCH = new int[] { 0, 5, 100, 200,
 	// 300, -1 };
 	// public static final int[] NUM_INCORRECT_MATCHES = new int[] { 0, 5, 30,
 	// 60, 120, 200 };
-	
-//	// Comparative, IMDB 100k, 0.08f err
-//	public static final int[] NUM_NON_MATCH = new int[] { -1 };
-//	public static final int[] NUM_INCORRECT_MATCHES = new int[] { 0 };
-
+	// IMDB 500k increasing errors
 	public static final int[] NUM_NON_MATCH = new int[] { 10, 450, 950, 1800,
 			2800, -1 };
 	public static final int[] NUM_INCORRECT_MATCHES = new int[] { 1, 350, 550,
 			950, 1450, 2180 };
-	
 	// IMDB increasing tuples
 	public static final int[] NUM_NON_MATCH_INC_TUPLES = new int[] { 2, 150,
 			260, 630, 860, 1220 };
 	public static final int[] NUM_INCORRECT_MATCHES_INC_TUPLES = new int[] { 0,
 			30, 90, 200, 350, 520 };
-	public static final float BELOW_THRESHOLD_DISTR = 0f;
-
-	// Performance tests.
-	public static final int[] P_NUM_NON_MATCH = new int[] { 10, 450, 950, 1800,
-			2800, 4000, -1 };
-	public static final int[] P_NUM_INCORRECT_MATCHES = new int[] { 1, 350, 550,
-			950, 1450, 2180, 3200 };
-	// IMDB increasing tuples
-	public static final int[] P_NUM_NON_MATCH_INC_TUPLES = new int[] { 2, 150,
-			260, 630, 860, 1220, 1800 };
-	public static final int[] P_NUM_INCORRECT_MATCHES_INC_TUPLES = new int[] { 0,
-			30, 90, 200, 350, 520, 720 };
+	public static final float BELOW_THRESHOLD_DISTR = 0.2f;
 
 	// Generic dataset configs.
 	public enum Dataset {
@@ -66,9 +50,10 @@ public class Config {
 	public static final char DATASET_DOUBLE_QUOTE_CHAR = '\"';
 	public static final String FILE_CACHE_BASE_URL = "filecache/";
 
-	public static final Float[] CONSQ_ERR_INJECT = new Float[] { 0.08f };
-//	 public static final Float[] CONSQ_ERR_INJECT = new Float[] { 0.02f,
-//	 0.04f, 0.06f, 0.08f, 0.10f, 0.12f, 0.14f };
+	public static final Float[] CONSQ_ERR_INJECT = new Float[] { 0.001f };
+	// public static final Float[] CONSQ_ERR_INJECT = new Float[] { 0.02f,
+	// 0.04f,
+	// 0.06f, 0.08f, 0.10f, 0.12f };
 
 	// Loading health
 	public static final String HEALTH_ORIG_FILE_NAME = "health";
@@ -76,8 +61,6 @@ public class Config {
 			+ HEALTH_ORIG_FILE_NAME + ".csv";
 	public static final String HEALTH_ORIG_FD_URL = "datasets/health/health_fds.csv";
 	public static final float HEALTH_SIM_THRESHOLD = 0.97f;
-	public static final float[] HEALTH_SIM_THRESHOLDS = new float[] { 0.6f,
-			0.7f, 0.8f, 0.9f, 1.0f };
 
 	// Loading cora
 	public static final String CORA_ORIG_FILE_NAME = "cora";
@@ -85,43 +68,35 @@ public class Config {
 			+ CORA_ORIG_FILE_NAME + ".csv";
 	public static final String CORA_ORIG_FD_URL = "datasets/cora/cora_fds.csv";
 	public static final float CORA_SIM_THRESHOLD = 0.91f;
-	public static final float[] CORA_SIM_THRESHOLDS = new float[] { 0.6f, 0.7f,
-			0.8f, 0.9f, 1.0f };
 
 	public static String imdbOrigFileName = "imdb_500k";
 	public static String imdbOrigFileUrl = "datasets/imdb/" + imdbOrigFileName
 			+ ".csv";
 	public static final String IMDB_ORIG_FD_URL = "datasets/imdb/imdb_fds.csv";
-	public static final float IMDB_SIM_THRESHOLD = 0.726f;
-	public static final float[] IMDB_SIM_THRESHOLDS = new float[] { 0.6f, 0.7f,
-			0.8f, 0.9f, 1.0f };
+	public static final float IMDB_SIM_THRESHOLD = 0.7f;
 
-	public static String booksOrigFileName = "books_500k";
+	public static String booksOrigFileName = "books_1m";
 	public static String booksOrigFileUrl = "datasets/books/"
 			+ booksOrigFileName + ".csv";
 	public static final String BOOKS_ORIG_FD_URL = "datasets/books/books_fds.csv";
-	public static final float BOOKS_SIM_THRESHOLD = 0.7f;
-	public static final float[] BOOKS_SIM_THRESHOLDS = new float[] { 0.6f,
-			0.7f, 0.8f, 0.9f, 1.0f };
+	public static final float BOOKS_SIM_THRESHOLD = 0.994f;
 
 	public static final String POLLUTION_ORIG_FILE_NAME = "pollution";
 	public static final String POLLUTION_ORIG_FILE_URL = "datasets/pollution/"
 			+ POLLUTION_ORIG_FILE_NAME + ".csv";
 	public static final String POLLUTION_ORIG_FD_URL = "datasets/pollution/pollution_fds.csv";
 	public static final float POLLUTION_SIM_THRESHOLD = 0.994f;
-	public static final float[] POLLUTION_SIM_THRESHOLDS = new float[] { 0.6f,
-			0.7f, 0.8f, 0.9f, 1.0f };
 
 	// Private data matching settings.
-	public static final int NUM_STRINGS = 40;
+	public static final int NUM_STRINGS = 20;
 	public static final double DIM_REDUCTION = 0.9d;
 	public static final boolean SHOULD_APPROX_DIST = true;
-	public static final int TOP_K_MATCHES = 5;
+	public static final int TOP_K_MATCHES = 2;
 	// This is to toggle the decision rule matching on and off. true = off.
 	public static final boolean SHOULD_AVERAGE = true;
 
 	public static final InitStrategy INIT_STRATEGY = InitStrategy.GREEDY_BEST_MATCH;
-	public static boolean shdPartitionViols = true;
+	public static final boolean SHOULD_PARTITION_VIOLS = true;
 
 	// Simulated annealing settings.
 	public static final double START_TEMP = 0.0009d;
@@ -133,7 +108,7 @@ public class Config {
 	// Simulated annealing settings- epsilon vs pvt loss.
 	public static final double START_TEMP_EVP = 0.0009d;
 	public static final double FINAL_TEMP_EVP = 0.00005d;
-	public static final double ALPHA_TEMP_EVP = 0.998d;
+	public static final double ALPHA_TEMP_EVP = 0.992d;
 	public static final double STEPS_PER_TEMP_EVP = 1;
 	public static final double BEST_ENERGY_EVP = 0.0001d;
 
@@ -179,8 +154,12 @@ public class Config {
 	public static final int SA_REPEAT_NEIGHB_CACHE_SIZE = 300;
 	public static final int SA_REPEAT_NEIGHB_THRESHOLD = 3;
 
-	public static final Double[] EPSILON_VS_PVT_LOSS = new Double[] { 0.84d,
-			0.86d, 0.88d, 0.90d, 0.92d, 0.94d };
+	public static final Double[] EPSILON_VS_PVT_LOSS = new Double[] { 0d,
+			0.05d, 0.1d, 0.15d, 0.2d, 0.25d, 0.3d, 0.35d, 0.4d, 0.45d, 0.5d,
+			0.55d, 0.6d, 0.65d, 0.7d, 0.75d, 0.8d, 0.85d, 0.9d, 0.95d, 1d };
+
+	// public static final Double[] EPSILON_VS_PVT_LOSS = new Double[] { 0.84d,
+	// 0.86d, 0.88d, 0.90d, 0.92d, 0.94d };
 
 	// Used for epsilon vs pvt expts to determine the range of objective
 	// outputs. The range is used to set the epsilon.

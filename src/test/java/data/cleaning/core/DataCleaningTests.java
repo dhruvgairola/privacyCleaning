@@ -22,7 +22,7 @@ import data.cleaning.core.service.dataset.impl.MasterDataset;
 import data.cleaning.core.service.dataset.impl.Record;
 import data.cleaning.core.service.dataset.impl.TargetDataset;
 import data.cleaning.core.service.errgen.impl.ErrorGenStrategy;
-import data.cleaning.core.service.matching.QMatchingServiceTests;
+import data.cleaning.core.service.matching.MatchingServiceTests;
 import data.cleaning.core.service.repair.RepairService;
 import data.cleaning.core.service.repair.impl.Violations;
 import data.cleaning.core.utils.Config;
@@ -48,7 +48,6 @@ public class DataCleaningTests {
 	protected List<Constraint> constraints;
 	protected Random rand;
 	protected float simThreshold;
-	protected float[] simThresholds;
 	protected String tgtErrUrl;
 	protected String mUrl;
 	protected String gtUrl;
@@ -61,7 +60,7 @@ public class DataCleaningTests {
 	protected char datasetSeparator;
 	protected char datasetQuoteChar;
 	private static final Logger logger = Logger
-			.getLogger(QMatchingServiceTests.class);
+			.getLogger(MatchingServiceTests.class);
 
 	@Before
 	public void initEnv() throws Exception {
@@ -79,7 +78,6 @@ public class DataCleaningTests {
 			datasetQuoteChar = Config.DATASET_QUOTE_CHAR;
 			datasetSeparator = Config.DATASET_SEPARATOR;
 			simThreshold = Config.CORA_SIM_THRESHOLD;
-			simThresholds = Config.CORA_SIM_THRESHOLDS;
 
 		} else if (Config.CURRENT_DATASET == Dataset.BOOKS) {
 			origName = Config.booksOrigFileName;
@@ -89,7 +87,6 @@ public class DataCleaningTests {
 			datasetQuoteChar = Config.DATASET_DOUBLE_QUOTE_CHAR;
 			datasetSeparator = Config.DATASET_SEPARATOR;
 			simThreshold = Config.BOOKS_SIM_THRESHOLD;
-			simThresholds = Config.BOOKS_SIM_THRESHOLDS;
 
 		} else if (Config.CURRENT_DATASET == Dataset.IMDB) {
 			origName = Config.imdbOrigFileName;
@@ -99,7 +96,6 @@ public class DataCleaningTests {
 			datasetQuoteChar = Config.DATASET_DOUBLE_QUOTE_CHAR;
 			datasetSeparator = Config.DATASET_SEPARATOR;
 			simThreshold = Config.IMDB_SIM_THRESHOLD;
-			simThresholds = Config.IMDB_SIM_THRESHOLDS;
 
 		} else if (Config.CURRENT_DATASET == Dataset.POLLUTION) {
 			origName = Config.POLLUTION_ORIG_FILE_NAME;
@@ -109,7 +105,6 @@ public class DataCleaningTests {
 			datasetQuoteChar = Config.DATASET_DOUBLE_QUOTE_CHAR;
 			datasetSeparator = Config.DATASET_SEPARATOR;
 			simThreshold = Config.POLLUTION_SIM_THRESHOLD;
-			simThresholds = Config.POLLUTION_SIM_THRESHOLDS;
 
 		} else if (Config.CURRENT_DATASET == Dataset.HEALTH) {
 			origName = Config.HEALTH_ORIG_FILE_NAME;
@@ -119,8 +114,6 @@ public class DataCleaningTests {
 			datasetQuoteChar = (char) -1;
 			datasetSeparator = Config.DATASET_SEPARATOR;
 			simThreshold = Config.HEALTH_SIM_THRESHOLD;
-			simThresholds = Config.HEALTH_SIM_THRESHOLDS;
-			
 		}
 
 		tgtErrName = origName + "_te" + err;
