@@ -12,7 +12,6 @@ import data.cleaning.core.service.dataset.impl.TargetDataset;
 import data.cleaning.core.service.matching.impl.Match;
 import data.cleaning.core.service.repair.impl.Candidate;
 import data.cleaning.core.utils.Config;
-import data.cleaning.core.utils.ProdLevel;
 import data.cleaning.core.utils.objectives.CustomCleaningObjective;
 import data.cleaning.core.utils.objectives.IndNormStrategy;
 import data.cleaning.core.utils.objectives.Objective;
@@ -48,8 +47,7 @@ public class SimulAnnealEpsLex extends Search {
 	@Override
 	public Set<Candidate> calcOptimalSolns(Constraint constraint,
 			List<Match> tgtMatches, TargetDataset tgtDataset,
-			MasterDataset mDataset, InfoContentTable table,
-			boolean shdReturnInit) {
+			MasterDataset mDataset, InfoContentTable table) {
 		double temperature = initTemperature;
 
 		Set<Candidate> solns = new HashSet<>();
@@ -77,25 +75,12 @@ public class SimulAnnealEpsLex extends Search {
 						finalTemperature, alpha, bestEnergy, strategy,
 						indNormStrat);
 				Set<Candidate> optSolns = h.calcOptimalSolns(constraint,
-						tgtMatches, tgtDataset, mDataset, table, shdReturnInit);
+						tgtMatches, tgtDataset, mDataset, table);
 				if (optSolns == null || optSolns.isEmpty())
 					return null;
-
-				if (optSolns.size() > 10) {
-					int added = 0;
-					for (Candidate optSoln : optSolns) {
-						solns.add(optSoln);
-						if (added == 9)
-							break;
-						added++;
-					}
-				} else {
-					solns.addAll(optSolns);
-				}
-
-				// logger.log(ProdLevel.PROD, "\nMinimizing : " + fns.get(i));
-				// logger.log(ProdLevel.PROD, "Optimal solns size : " +
-				// optSolns.size());
+				solns.addAll(optSolns);
+				// logger.log(ProdLevel.DEBUG, "\nMinimizing : " + fns.get(i));
+				// logger.log(ProdLevel.DEBUG, "Optimal solns : " + optSolns);
 
 			} else if (obj instanceof CustomCleaningObjective) {
 				// TODO: Somewhat hacky.
