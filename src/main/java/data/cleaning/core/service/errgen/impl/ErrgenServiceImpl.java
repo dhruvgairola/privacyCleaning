@@ -821,7 +821,7 @@ public class ErrgenServiceImpl implements ErrgenService {
 		// overlap, adding some errors wrt 1 constraint can exceed numErrs
 		// because of viols wrt other constraints. To avoid this, we add errors
 		// in small chunks.
-		int loopFactor = constraints.size() * 150;
+		int loopFactor = constraints.size() * 5;
 		int quotient = numErrs / loopFactor;
 
 		for (int i = 0; i < loopFactor; i++) {
@@ -1815,8 +1815,8 @@ public class ErrgenServiceImpl implements ErrgenService {
 	/**
 	 * There recs are redundant. If any element in the list is removed, the
 	 * RecordViolInfo obj contains info about how many violations are lowered.
-	 * The ordering is in ascending order wrt the num of violations (e.g.,
-	 * index 0 violates the least constraints).
+	 * The ordering is in descending order wrt the num of violations (e.g.,
+	 * index 0 violates the most constraints).
 	 * 
 	 * @param currentEmds
 	 * @param currentViols
@@ -1925,10 +1925,10 @@ public class ErrgenServiceImpl implements ErrgenService {
 			@Override
 			public int compare(RecordViolInfo o1, RecordViolInfo o2) {
 				if (o1.getConstraints().size() > o2.getConstraints().size()) {
-					return 1;
+					return -1;
 				} else if (o1.getConstraints().size() < o2.getConstraints()
 						.size()) {
-					return -1;
+					return 1;
 				} else {
 					return 0;
 				}
