@@ -20,29 +20,24 @@ public class Config {
 	// Chunk size is the size of a violation chunk (LHS is the same and RHS is
 	// different). Choose wisely bec. for simul annealing, you will need to
 	// increase num iterations if chunk is larger.
-	public static int ROUGH_CHUNK_SIZE = 100;
+	public static final int ROUGH_CHUNK_SIZE = 280;
 	public static final ErrorGenStrategy ERR_GEN_STRATEGY = ErrorGenStrategy.RANDOM;
 	// IMDB 50k increasing errors
 	// public static final int[] NUM_NON_MATCH = new int[] { 0, 5, 100, 200,
 	// 300, -1 };
 	// public static final int[] NUM_INCORRECT_MATCHES = new int[] { 0, 5, 30,
 	// 60, 120, 200 };
-	
-//	// Comparative, IMDB 100k, 0.08f err
-//	public static final int[] NUM_NON_MATCH = new int[] { -1 };
-//	public static final int[] NUM_INCORRECT_MATCHES = new int[] { 0 };
-
+	// IMDB 500k increasing errors
 	public static final int[] NUM_NON_MATCH = new int[] { 10, 450, 950, 1800,
 			2800, -1 };
 	public static final int[] NUM_INCORRECT_MATCHES = new int[] { 1, 350, 550,
 			950, 1450, 2180 };
-	
 	// IMDB increasing tuples
 	public static final int[] NUM_NON_MATCH_INC_TUPLES = new int[] { 2, 150,
 			260, 630, 860, 1220 };
 	public static final int[] NUM_INCORRECT_MATCHES_INC_TUPLES = new int[] { 0,
 			30, 90, 200, 350, 520 };
-	public static final float BELOW_THRESHOLD_DISTR = 0f;
+	public static final float BELOW_THRESHOLD_DISTR = 0.2f;
 
 	// Performance tests.
 	public static final int[] P_NUM_NON_MATCH = new int[] { 10, 450, 950, 1800,
@@ -60,15 +55,15 @@ public class Config {
 		HEALTH, CORA, BOOKS, IMDB, POLLUTION;
 	}
 
-	public static final Dataset CURRENT_DATASET = Dataset.IMDB;
+	public static final Dataset CURRENT_DATASET = Dataset.BOOKS;
 	public static final char DATASET_SEPARATOR = ',';
 	public static final char DATASET_QUOTE_CHAR = '\'';
 	public static final char DATASET_DOUBLE_QUOTE_CHAR = '\"';
 	public static final String FILE_CACHE_BASE_URL = "filecache/";
 
-	public static final Float[] CONSQ_ERR_INJECT = new Float[] { 0.08f };
-//	 public static final Float[] CONSQ_ERR_INJECT = new Float[] { 0.02f,
-//	 0.04f, 0.06f, 0.08f, 0.10f, 0.12f, 0.14f };
+//	public static final Float[] CONSQ_ERR_INJECT = new Float[] { 0.08f };
+	 public static final Float[] CONSQ_ERR_INJECT = new Float[] { 0.02f,
+	 0.04f, 0.06f, 0.08f, 0.10f, 0.12f, 0.14f };
 
 	// Loading health
 	public static final String HEALTH_ORIG_FILE_NAME = "health";
@@ -92,7 +87,7 @@ public class Config {
 	public static String imdbOrigFileUrl = "datasets/imdb/" + imdbOrigFileName
 			+ ".csv";
 	public static final String IMDB_ORIG_FD_URL = "datasets/imdb/imdb_fds.csv";
-	public static final float IMDB_SIM_THRESHOLD = 0.726f;
+	public static final float IMDB_SIM_THRESHOLD = 0.7f;
 	public static final float[] IMDB_SIM_THRESHOLDS = new float[] { 0.6f, 0.7f,
 			0.8f, 0.9f, 1.0f };
 
@@ -113,15 +108,15 @@ public class Config {
 			0.7f, 0.8f, 0.9f, 1.0f };
 
 	// Private data matching settings.
-	public static final int NUM_STRINGS = 40;
+	public static final int NUM_STRINGS = 20;
 	public static final double DIM_REDUCTION = 0.9d;
 	public static final boolean SHOULD_APPROX_DIST = true;
-	public static final int TOP_K_MATCHES = 5;
+	public static final int TOP_K_MATCHES = 2;
 	// This is to toggle the decision rule matching on and off. true = off.
 	public static final boolean SHOULD_AVERAGE = true;
 
 	public static final InitStrategy INIT_STRATEGY = InitStrategy.GREEDY_BEST_MATCH;
-	public static boolean shdPartitionViols = true;
+	public static final boolean SHOULD_PARTITION_VIOLS = true;
 
 	// Simulated annealing settings.
 	public static final double START_TEMP = 0.0009d;

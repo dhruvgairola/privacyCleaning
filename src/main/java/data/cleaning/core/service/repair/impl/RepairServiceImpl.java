@@ -87,11 +87,10 @@ public class RepairServiceImpl implements RepairService {
 	@Override
 	public Set<Candidate> calcOptimalSolns(Constraint constraint,
 			List<Match> tgtMatches, Search search, TargetDataset tgtDataset,
-			MasterDataset mDataset, InfoContentTable table,
-			boolean shdReturnInit) {
+			MasterDataset mDataset, InfoContentTable table) {
 
 		return search.calcOptimalSolns(constraint, tgtMatches, tgtDataset,
-				mDataset, table, shdReturnInit);
+				mDataset, table);
 	}
 
 	@Override

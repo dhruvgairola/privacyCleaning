@@ -69,19 +69,10 @@ public class PDatasetServiceTests {
 	 */
 	@Test
 	public void testPrepareDatasets() throws Exception {
-		int[] chunknum = new int[] { 220 };
-
-		for (int chunk : chunknum) {
-			rand = new Random(Config.SEED);
-			logger.log(ProdLevel.PROD, "\nUser defined chunksize : " + chunk + "\n");
-			Config.ROUGH_CHUNK_SIZE = chunk;
-			testConstructGroundTruth();
-			testConstructTargetErrs();
-			testCorrectnessOfErrorMetadata();
-			testConstructMaster();
-			testPrintStatsAboutErrors();
-			logger.log(ProdLevel.PROD, "\n");
-		}
+		testConstructGroundTruth();
+		testConstructTargetErrs();
+		testCorrectnessOfErrorMetadata();
+		testConstructMaster();
 	}
 
 	private void reloadConfigs(float errPerc) {
@@ -296,8 +287,8 @@ public class PDatasetServiceTests {
 				totViols += v.getViolMap().size();
 				numChunks += v.getViolMap().keySet().size();
 
-				// logger.log(ProdLevel.PROD, "Constraint : " + constraint
-				// + ", Viol map : " + v.getViolMap());
+//				logger.log(ProdLevel.PROD, "Constraint : " + constraint
+//						+ ", Viol map : " + v.getViolMap());
 				logger.log(ProdLevel.PROD, "Constraint : " + constraint
 						+ ", Num chunks : " + v.getViolMap().keySet().size());
 
@@ -341,8 +332,8 @@ public class PDatasetServiceTests {
 					totViols += v.getViolMap().size();
 					numChunks += v.getViolMap().keySet().size();
 
-					// logger.log(ProdLevel.PROD, "Constraint : " + constraint
-					// + ", Viol map : " + v.getViolMap());
+//					logger.log(ProdLevel.PROD, "Constraint : " + constraint
+//							+ ", Viol map : " + v.getViolMap());
 					logger.log(ProdLevel.PROD, "Constraint : " + constraint
 							+ ", Num chunks : "
 							+ v.getViolMap().keySet().size());
