@@ -81,7 +81,7 @@ Run (prep dataset) :
 mvn -Dtest=DatasetServiceTests#testPrepareDatasets test > /dev/null & disown
 ```
 
-Change lines 164 in the file below to adjust the thresholds :
+Change line 164 in the file below to adjust the thresholds :
 ```
 vim src/main/java/data/cleaning/core/utils/Config.java
 ```
@@ -112,11 +112,56 @@ Checkout the branch : constrained_and_lexical_vs_accuracy
 
 Point HEAD to tag : expt_cla
 
+Run (prep dataset) :
+```
+mvn -Dtest=DatasetServiceTests#testPrepareDatasets test > /dev/null & disown
+```
+
+Change line 157 in the file below to adjust the thresholds :
+```
+vim src/main/java/data/cleaning/core/utils/Config.java
+```
+
+Run (constrained expt) :
+```
+mvn -Dtest=RepairServiceTests#testSimulAnnealEpsEVA test > /dev/null & disown
+```
+
+Run (lexical expt) :
+```
+mvn -Dtest=RepairServiceTests#testSimulAnnealEpsLexEVA test > /dev/null & disown
+```
+
 Error rate vs accuracy
 ---------------
 Checkout the branch : errrate_vs_accuracy_and_numtups_vs_accuracy
 
 Point HEAD to tag : expt_eata
+
+Run (prep dataset) :
+```
+mvn -Dtest=DatasetServiceTests#testPrepareDatasets test > /dev/null & disown
+```
+
+Run (weighted expt) :
+```
+mvn -Dtest=QRepairServiceTests#testSimulAnnealWeighted test > /dev/null & disown
+```
+
+Run (dynamic expt) :
+```
+mvn -Dtest=QRepairServiceTests#testSimulAnnealEpsDynamic test > /dev/null & disown
+```
+
+Run (constrained expt) :
+```
+mvn -Dtest=QRepairServiceTests#testSimulAnnealEpsFlexi test > /dev/null & disown
+```
+
+Run (lexical expt) :
+```
+mvn -Dtest=QRepairServiceTests#testSimulAnnealEpsLex test > /dev/null & disown
+```
 
 Number of tuples vs accuracy
 ---------------
@@ -124,11 +169,62 @@ Checkout the branch : errrate_vs_accuracy_and_numtups_vs_accuracy
 
 Point HEAD to tag : expt_eata
 
+Run (prep all IMDB datasets) :
+```
+mvn -Dtest=DatasetServiceTests#testPrepareIMDBAllDatasets test > /dev/null & disown
+```
+
+Uncomment line 53 and comment lines 54-55 in the following file :
+```
+vim src/main/java/data/cleaning/core/utils/Config.java
+```
+
+
+Run (weighted expt) :
+```
+mvn -Dtest=RepairServiceTests#testSimulAnnealWeightedIMDB test > /dev/null & disown
+```
+
+Run (dynamic expt) :
+```
+mvn -Dtest=RepairServiceTests#testSimulAnnealEpsDynamicIMDB test > /dev/null & disown
+```
+
+Run (constrained expt) :
+```
+mvn -Dtest=RepairServiceTests#testSimulAnnealEpsFlexiIMDB test > /dev/null & disown
+```
+
+Run (lexical expt) :
+```
+mvn -Dtest=RepairServiceTests#testSimulAnnealEpsLexIMDB test > /dev/null & disown
+```
+
 Threshold vs privacy loss (constrained and lexical approaches)
 ---------------
 Checkout the branch : constrained_and_lexical_vs_pvtloss
 
 Point HEAD to tag : expt_clp
+
+Run (prep dataset) :
+```
+mvn -Dtest=DatasetServiceTests#testPrepareDatasets test > /dev/null & disown
+```
+
+Change line 157 in the file below to adjust the thresholds :
+```
+vim src/main/java/data/cleaning/core/utils/Config.java
+```
+
+Run (constrained expt) :
+```
+mvn -Dtest=RepairServiceTests#testSimulAnnealEpsEVP test > /dev/null & disown
+```
+
+Run (lexical expt) :
+```
+mvn -Dtest=RepairServiceTests#testSimulAnnealEpsLexEVP test > /dev/null & disown
+```
 
 Error rate vs time taken
 ---------------
@@ -136,11 +232,61 @@ Checkout the branch : errrate_vs_time
 
 Point HEAD to tag : expt_et
 
+Run (prep dataset) :
+```
+mvn -Dtest=PDatasetServiceTests#testPrepareDatasets test > /dev/null & disown
+```
+
+Run (weighted expt) :
+```
+mvn -Dtest=PRepairServiceTests#testErrRateSimulAnnealWeighted test > /dev/null & disown
+```
+
+Run (dynamic expt) :
+```
+mvn -Dtest=PRepairServiceTests#testErrRateSimulAnnealEpsDynamic test > /dev/null & disown
+```
+
+Run (constrained expt) :
+```
+mvn -Dtest=PRepairServiceTests#testErrRateSimulAnnealEpsFlexi test > /dev/null & disown
+```
+
+Run (lexical expt) :
+```
+mvn -Dtest=PRepairServiceTests#testErrRateSimulAnnealEpsLex test > /dev/null & disown
+```
+
 Number of tuples vs time taken
 ---------------
 Checkout the branch : numtups_vs_time
 
 Point HEAD to tag : expt_tt
+
+Run (prep all books datasets) :
+```
+mvn -Dtest=PDatasetServiceTests#testPrepareBooksAllDatasets test > /dev/null & disown
+```
+
+Run (weighted expt) :
+```
+mvn -Dtest=PRepairServiceTests#testNumTupsWeightedBooks test > /dev/null & disown
+```
+
+Run (dynamic expt) :
+```
+mvn -Dtest=PRepairServiceTests#testNumTupsEpsDynamicBooks test > /dev/null & disown
+```
+
+Run (constrained expt) :
+```
+mvn -Dtest=PRepairServiceTests#testNumTupsEpsFlexiBooks test > /dev/null & disown
+```
+
+Run (lexical expt) :
+```
+mvn -Dtest=PRepairServiceTests#testNumTupsEpsLexBooks test > /dev/null & disown
+```
 
 Number of FDs vs time taken
 ---------------
@@ -148,17 +294,94 @@ Checkout the branch : numfds_vs_time
 
 Point HEAD to tag : expt_ft
 
+Uncomment lines 73-79 in the file below depending on the number of FDs :
+```
+vim src/test/java/data/cleaning/core/service/dataset/PDatasetServiceTests.java
+```
+
+Run (prep dataset) :
+```
+mvn -Dtest=PDatasetServiceTests#testPrepareDatasets test > /dev/null & disown
+```
+
+Change line 97 in the file below to change the FD file :
+```
+vim src/main/java/data/cleaning/core/utils/Config.java
+```
+
+Run (weighted expt) :
+```
+mvn -Dtest=PRepairServiceTests#testErrRateSimulAnnealWeighted test > /dev/null & disown
+```
+
+Run (dynamic expt) :
+```
+mvn -Dtest=PRepairServiceTests#testErrRateSimulAnnealEpsDynamic test > /dev/null & disown
+```
+
+Run (constrained expt) :
+```
+mvn -Dtest=PRepairServiceTests#testErrRateSimulAnnealEpsFlexi test > /dev/null & disown
+```
+
+Run (lexical expt) :
+```
+mvn -Dtest=PRepairServiceTests#testErrRateSimulAnnealEpsLex test > /dev/null & disown
+```
+
+Note that you need to repeat all the steps (changing configs and preparing dataset) if you change the FD file.
+
 Data matching similarity threshold vs time taken
 ---------------
 Checkout the branch : similarity_vs_time
 
 Point HEAD to tag : expt_st
 
+Run (prep dataset) :
+```
+mvn -Dtest=PDatasetServiceTests#testPrepareDatasets test > /dev/null & disown
+```
+
+Change line 99 in the file below to change similarity thresholds :
+```
+vim src/main/java/data/cleaning/core/utils/Config.java
+```
+
+Run (weighted expt) :
+```
+mvn -Dtest=PRepairServiceTests#testSimilaritySimulAnnealWeighted test > /dev/null & disown
+```
+
+Run (dynamic expt) :
+```
+mvn -Dtest=PRepairServiceTests#testSimilarityRateSimulAnnealEpsDynamic test > /dev/null & disown
+```
+
+Run (constrained expt) :
+```
+mvn -Dtest=PRepairServiceTests#testSimilaritySimulAnnealEpsFlexi test > /dev/null & disown
+```
+
+Run (lexical expt) :
+```
+mvn -Dtest=PRepairServiceTests#testSimilaritySimulAnnealEpsLex test > /dev/null & disown
+```
+
 Comparison experiments
 ---------------
 Checkout the branch : bourgain_vs_sparsemap
 
 Point HEAD to tag : expt_bs
+
+Run (prep dataset) :
+```
+mvn -Dtest=QDatasetServiceTests#testPrepareDatasets test > /dev/null & disown
+```
+
+Run (weighted expt) :
+```
+mvn -Dtest=QRepairServiceTests#testMatchQuality test > /dev/null & disown
+```
 
 ------------------------------------------------------------------------
 5. Output and logging
