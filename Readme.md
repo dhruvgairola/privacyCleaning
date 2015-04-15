@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------
 1. Introduction
 ------------------------------------------------------------------------
-Data privacy with data cleaning code. The original code has 1 branch for every single test, and the aim is to merge all these branches into master and release that publicly. The original code with the branches is not public because some of the older commits contain sensitive information. For now, I have released one of the more major branches.
+Data privacy with data cleaning code.
 
 
 ------------------------------------------------------------------------
@@ -123,10 +123,7 @@ logger.log(SecurityLevel.SECURITY, "Foobar");
 is printed to the console and also to a file called pvt_cleaning.out (the log file is not tracked on git).
 
 ------------------------------------------------------------------------
-4. Code Architecture
+4. Replicating experiments
 ------------------------------------------------------------------------
-Spring is used for dependency injection (i.e., Spring automatically wires up the creation of objects and passes them to callers). Hence, every major functionality is implemented as a service e.g., RepairService.java is in charge of providing repair functionality. 
 
-On the other hand, all the experiments are written as JUnit test cases. We can view tests as being clients which make use of the services e.g., DatasetServiceTests.java consists of tests related to the DatasetService.java service class. Here is where you can feel free to code and hack things up, and to build experiments by using the methods provided by the services.
-
-If you want to add more methods to services or add more service classes, then make sure that the code is widely applicable to all calling clients (tests) and that the code is of high quality. If you want to use the methods of services to make experiments, write up tests cases instead.
+To replicate each experiment, please check out the relevant branch. Each branch is tagged with the "expt_*", where "*" represents some unique name. Checkout the tagged commit in order to replicate the experiments.
