@@ -39,6 +39,8 @@ Run above everytime before running any experiments (if code was changed since th
 
 The code was implemented using the Spring dependency injection framework. Functionality is implemented as services, while experiments are implemented as JUnit tests which call the services.
 
+In our code, the the constrained approach is referred to as the epsilon approach, the dynamic approach is referred to as the epsilon dynamic approach, the lexical approach is referred to as the epsilon lexical approach while the weighted approach is referred to as the weighted approach (no change here). 
+
 ------------------------------------------------------------------------
 4. Replicating experiments
 ------------------------------------------------------------------------
@@ -50,56 +52,112 @@ Note that if you are planning to add new functionality to our framework, you can
 Varying the weights for the weighted approach
 ---------------
 Checkout the branch : weighted_vs_accuracy
+
 Point HEAD to tag : expt_wa
+
+Run (prep dataset) :
+```
+mvn -Dtest=DatasetServiceTests#testPrepareDatasets test > /dev/null & disown
+```
+
+Change lines 115-117 in the file below to adjust the weights :
+```
+vim src/main/java/data/cleaning/core/utils/Config.java
+```
+
+Run (weighted expt) :
+```
+mvn -Dtest=RepairServiceTests#testSimulAnnealWeighted test > /dev/null & disown
+```
 
 Data matching similarity threshold vs accuracy
 ---------------
 Checkout the branch : similarity_vs_accuracy
+
 Point HEAD to tag : expt_sa
+
+Run (prep dataset) :
+```
+mvn -Dtest=DatasetServiceTests#testPrepareDatasets test > /dev/null & disown
+```
+
+Change lines 164 in the file below to adjust the thresholds :
+```
+vim src/main/java/data/cleaning/core/utils/Config.java
+```
+
+Run (weighted expt) :
+```
+mvn -Dtest=RepairServiceTests#testSimulAnnealWeightedSim test > /dev/null & disown
+```
+
+Run (constrained expt) :
+```
+mvn -Dtest=RepairServiceTests#testSimulAnnealEpsFlexiSim test > /dev/null & disown
+```
+
+Run (dynamic expt) :
+```
+mvn -Dtest=RepairServiceTests#testSimulAnnealEpsDynSim test > /dev/null & disown
+```
+
+Run (lexical expt) :
+```
+mvn -Dtest=RepairServiceTests#testSimulAnnealEpsLexSim test > /dev/null & disown
+```
 
 Theshold vs accuracy (constrained and lexical approaches)
 ---------------
 Checkout the branch : constrained_and_lexical_vs_accuracy
+
 Point HEAD to tag : expt_cla
 
 Error rate vs accuracy
 ---------------
 Checkout the branch : errrate_vs_accuracy_and_numtups_vs_accuracy
+
 Point HEAD to tag : expt_eata
 
 Number of tuples vs accuracy
 ---------------
 Checkout the branch : errrate_vs_accuracy_and_numtups_vs_accuracy
+
 Point HEAD to tag : expt_eata
 
 Threshold vs privacy loss (constrained and lexical approaches)
 ---------------
 Checkout the branch : constrained_and_lexical_vs_pvtloss
+
 Point HEAD to tag : expt_clp
 
 Error rate vs time taken
 ---------------
 Checkout the branch : errrate_vs_time
+
 Point HEAD to tag : expt_et
 
 Number of tuples vs time taken
 ---------------
 Checkout the branch : numtups_vs_time
+
 Point HEAD to tag : expt_tt
 
 Number of FDs vs time taken
 ---------------
 Checkout the branch : numfds_vs_time
+
 Point HEAD to tag : expt_ft
 
 Data matching similarity threshold vs time taken
 ---------------
 Checkout the branch : similarity_vs_time
+
 Point HEAD to tag : expt_st
 
 Comparison experiments
 ---------------
 Checkout the branch : bourgain_vs_sparsemap
+
 Point HEAD to tag : expt_bs
 
 ------------------------------------------------------------------------
@@ -108,3 +166,5 @@ Point HEAD to tag : expt_bs
 All logging and printing is controlled by log4j. This is useful for printing lengthy debugging output to a single log file from any Java class. 
 
 The config file can be found in: src/main/resources/log4j.properties
+
+Output for all experiments will be stored in the file : pvt_cleaning.out
