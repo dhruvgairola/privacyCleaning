@@ -6,7 +6,7 @@ Java 7, Maven 3.0.3
 ------------------------------------------------------------------------
 2. Datasets
 ------------------------------------------------------------------------
-Experimental datasets (IMDB and books)
+Datasets for our experiments (IMDB and books)
 -----------------------
 Download link :
 https://drive.google.com/file/d/0B6gIlEKnOlv1UHQxcUlLR25ncnc/view?usp=sharing
