@@ -1,129 +1,110 @@
 ------------------------------------------------------------------------
-1. Introduction
-------------------------------------------------------------------------
-Data privacy with data cleaning code.
-
-
-------------------------------------------------------------------------
-2. Requirements for running project
+1. Requirements for running project
 ------------------------------------------------------------------------
 Java 7, Maven 3.0.3
 
-
 ------------------------------------------------------------------------
-3. Running the project
+2. Datasets
 ------------------------------------------------------------------------
-Existing datasets
+Experimental datasets (IMDB and books)
 -----------------------
-Please download the files from here :
+Download link :
 https://drive.google.com/file/d/0B6gIlEKnOlv1UHQxcUlLR25ncnc/view?usp=sharing
 
 Unzip the files into the root directory.
 
-New datasets
+Adding a new dataset
 -----------------------
-The first line of the csv file has to be the column names for both the target and master datasets.
-
-FD file
------------------------
-If you have an FD of the form "Mobile Number, First Name -> Last Name", then convert this to csv "Mobile Number, First Name, Last Name". The last csv element is the consequent while everything before is the antecedent. Make sure that all the attributes match the column names defined in the dataset files.
-
-Configuring project
------------------------
+Only csv files supported currently. The first line of the csv file has to have the attribute names. Modify 
 ```
 vim src/main/java/data/cleaning/core/utils/Config.java
 ```
-This is the configuration file. Add the config for the new datasets just as the current datasets are specified.
+and add the path to your new dataset file (following the examples for the IMDB and books datasets).
 
-To run the tests
+Adding a new FD file
 -----------------------
-General advice
----------------
+If you have an FD of the form "A, B -> C", then convert this "A, B, C" and add to a csv file. This requires that your FDs are minimal (only 1 consequent). Modify 
+```
+vim src/main/java/data/cleaning/core/utils/Config.java
+```
+and add the path to your new fd file (following the examples for the IMDB and books datasets).
+
+------------------------------------------------------------------------
+3. General comments
+------------------------------------------------------------------------
 ```
 mvn clean install
 ```
+Run above everytime before running any experiments (if code was changed since the last time).
 
-Run above code everytime before running the tests (if code was changed since the last time). Note that the tests below don't account for the dataset preprocessing. That info will be added later.
-
-Quality tests
----------------
-Err rate vs accuracy :
-```
-mvn -Dtest=QDatasetServiceTests#testPrepareDatasets test > /dev/null & disown
-mvn -Dtest=QRepairServiceTests#testSimulAnnealWeighted test > /dev/null & disown
-mvn -Dtest=QRepairServiceTests#testSimulAnnealEpsDynamic test > /dev/null & disown
-mvn -Dtest=QRepairServiceTests#testSimulAnnealEpsFlexi test > /dev/null & disown
-mvn -Dtest=QRepairServiceTests#testSimulAnnealEpsLex test > /dev/null & disown
-```
-
-Inc tuples vs accuracy :
-```
-mvn -Dtest=QDatasetServiceTests#testPrepareIMDBAllDatasets test > /dev/null & disown
-mvn -Dtest=QRepairServiceTests#testSimulAnnealWeightedIMDB test > /dev/null & disown
-mvn -Dtest=QRepairServiceTests#testSimulAnnealEpsDynamicIMDB test > /dev/null & disown
-mvn -Dtest=QRepairServiceTests#testSimulAnnealEpsFlexiIMDB test > /dev/null & disown
-mvn -Dtest=QRepairServiceTests#testSimulAnnealEpsLexIMDB test > /dev/null & disown
-```
-
-Comparative tests (Bourgain)
----------------
-```
-mvn -Dtest=QRepairServiceTests#testMatchQuality test > /dev/null & disown
-```
-
-Performance tests
----------------
-Create all books :
-```
-mvn -Dtest=PDatasetServiceTests#testIncRecsBooksDataset test > /dev/null & disown
-```
-
-Inc errs vs time :
-```
-mvn -Dtest=PDatasetServiceTests#testPrepareDatasets test > /dev/null & disown
-mvn -Dtest=PDatasetServiceTests#testPrintStatsAboutErrors test > /dev/null & disown
-mvn -Dtest=PRepairServiceTests#testErrRateSimulAnnealWeighted test > /dev/null & disown
-mvn -Dtest=PRepairServiceTests#testErrRateSimulAnnealEpsDynamic test > /dev/null & disown
-mvn -Dtest=PRepairServiceTests#testErrRateSimulAnnealEpsFlexi test > /dev/null & disown
-mvn -Dtest=PRepairServiceTests#testErrRateSimulAnnealEpsLex test > /dev/null & disown
-```
-
-Inc tuples vs time :
-```
-mvn -Dtest=PDatasetServiceTests#testPrepareBooksAllDatasets test > /dev/null & disown
-mvn -Dtest=PDatasetServiceTests#testPrintStatsAboutAllBooksErrors test > /dev/null & disown
-mvn -Dtest=PRepairServiceTests#testNumTupsWeightedBooks test > /dev/null & disown
-mvn -Dtest=PRepairServiceTests#testNumTupsEpsDynamicBooks test > /dev/null & disown
-mvn -Dtest=PRepairServiceTests#testNumTupsEpsFlexiBooks test > /dev/null & disown
-mvn -Dtest=PRepairServiceTests#testNumTupsEpsLexBooks test > /dev/null & disown
-```
-
-Similarity vs time :
-```
-mvn -Dtest=PRepairServiceTests#testSimilaritySimulAnnealWeighted test > /dev/null & disown
-mvn -Dtest=PRepairServiceTests#testSimilarityRateSimulAnnealEpsDynamic test > /dev/null & disown
-mvn -Dtest=PRepairServiceTests#testSimilaritySimulAnnealEpsFlexi test > /dev/null & disown
-mvn -Dtest=PRepairServiceTests#testSimilaritySimulAnnealEpsLex test > /dev/null & disown
-```
-
-Useful commands
------------------------
-```
-ps -ef | grep java | awk '{print $2}' | xargs kill -9
-```
-
-To log println statements
------------------------
-All logging and printing is controlled by log4j. This is useful for printing lengthy debugging output to a single log file from any Java class. 
-
-The config file can be found in: src/main/resources/log4j.properties
-
-Change the config file to your liking by following the online documentation for log4j. By default, all logging of the form :
-logger.log(SecurityLevel.SECURITY, "Foobar");
-is printed to the console and also to a file called pvt_cleaning.out (the log file is not tracked on git).
+The code was implemented using the Spring dependency injection framework. Functionality is implemented as services, while experiments are implemented as JUnit tests which call the services.
 
 ------------------------------------------------------------------------
 4. Replicating experiments
 ------------------------------------------------------------------------
 
-To replicate each experiment, please check out the relevant branch. Each branch is tagged with the "expt_*", where "*" represents some unique name. Checkout the tagged commit in order to replicate the experiments.
+To replicate the experiments in our paper, you need to checkout the relevant branch. Every branch has 1 commit in its commit history which is tagged with the following naming convention- "expt_\*", where "\*" represents some unique identifier. You need to have the HEAD of your checkedout branch pointing at the tagged commit. Only then can you replicate the experiemnts used in the paper. 
+
+Note that if you are planning to add new functionality to our framework, you can work directly with the master branch and ignore the other branches. In this section, we are only describing how to replicate the experiments that we performed in our paper and the branches were constructed only for this purpose (for others to replicate our results).
+
+Varying the weights for the weighted approach
+---------------
+Checkout the branch : weighted_vs_accuracy
+Point HEAD to tag : expt_wa
+
+Data matching similarity threshold vs accuracy
+---------------
+Checkout the branch : similarity_vs_accuracy
+Point HEAD to tag : expt_sa
+
+Theshold vs accuracy (constrained and lexical approaches)
+---------------
+Checkout the branch : constrained_and_lexical_vs_accuracy
+Point HEAD to tag : expt_cla
+
+Error rate vs accuracy
+---------------
+Checkout the branch : errrate_vs_accuracy_and_numtups_vs_accuracy
+Point HEAD to tag : expt_eata
+
+Number of tuples vs accuracy
+---------------
+Checkout the branch : errrate_vs_accuracy_and_numtups_vs_accuracy
+Point HEAD to tag : expt_eata
+
+Threshold vs privacy loss (constrained and lexical approaches)
+---------------
+Checkout the branch : constrained_and_lexical_vs_pvtloss
+Point HEAD to tag : expt_clp
+
+Error rate vs time taken
+---------------
+Checkout the branch : errrate_vs_time
+Point HEAD to tag : expt_et
+
+Number of tuples vs time taken
+---------------
+Checkout the branch : numtups_vs_time
+Point HEAD to tag : expt_tt
+
+Number of FDs vs time taken
+---------------
+Checkout the branch : numfds_vs_time
+Point HEAD to tag : expt_ft
+
+Data matching similarity threshold vs time taken
+---------------
+Checkout the branch : similarity_vs_time
+Point HEAD to tag : expt_st
+
+Comparison experiments
+---------------
+Checkout the branch : bourgain_vs_sparsemap
+Point HEAD to tag : expt_bs
+
+------------------------------------------------------------------------
+5. Output and logging
+------------------------------------------------------------------------
+All logging and printing is controlled by log4j. This is useful for printing lengthy debugging output to a single log file from any Java class. 
+
+The config file can be found in: src/main/resources/log4j.properties
