@@ -23,7 +23,7 @@ and add the path to your new dataset file (following the examples for the IMDB a
 
 Adding a new FD file
 -----------------------
-If you have an FD of the form "A, B -> C", then convert this "A, B, C" and add to a csv file. This requires that your FDs are minimal (only 1 consequent). Modify 
+If you have an FD of the form "A, B -> C", then convert this "A, B, C" and add to a csv file. Without loss of generality, this requires that your FDs have been decomposed appropriately (only 1 consequent). Modify 
 ```
 vim src/main/java/data/cleaning/core/utils/Config.java
 ```
