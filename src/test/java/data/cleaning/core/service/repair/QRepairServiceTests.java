@@ -55,10 +55,14 @@ import data.cleaning.core.utils.search.SimulAnnealEpsFlexible;
 import data.cleaning.core.utils.search.SimulAnnealEpsLex;
 import data.cleaning.core.utils.search.SimulAnnealWeighted;
 
+/**
+ * Quality tests (accuracy).
+ * 
+ * @author dhruvgairola
+ *
+ */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
-// -Djava.library.path=/Library/Frameworks/R.framework/Resources/library/rJava/jri/
-// RHOME : /Library/Frameworks/R.framework/Resources
 public class QRepairServiceTests extends DataCleaningTests {
 
 	@Autowired
@@ -406,8 +410,7 @@ public class QRepairServiceTests extends DataCleaningTests {
 
 			for (int i = 0; i < constraints.size(); i++) {
 				Constraint constraint = constraints.get(i);
-				InfoContentTable table = m.calcInfoContentTable(constraint,
-						IndexType.HASH_MAP);
+				InfoContentTable table = m.calcInfoContentTable(constraint);
 				Search search = getSearch(searchType, constraint, table,
 						errPerc);
 				Map<Long, Match> tidToMatch = runProtocolEVS(search,
@@ -811,8 +814,7 @@ public class QRepairServiceTests extends DataCleaningTests {
 						}
 					}
 				}
-				
-				
+
 				numTotalRepairs++;
 			}
 		}
@@ -830,10 +832,8 @@ public class QRepairServiceTests extends DataCleaningTests {
 	// the protocol, so we create these classes for them.
 	public class Master {
 
-		public InfoContentTable calcInfoContentTable(Constraint constraint,
-				IndexType type) {
-			return datasetService.calcInfoContentTable(constraint, mDataset,
-					type);
+		public InfoContentTable calcInfoContentTable(Constraint constraint) {
+			return datasetService.calcInfoContentTable(constraint, mDataset);
 		}
 
 		public void removeInfoContentUsingCandidate(InfoContentTable table,
@@ -1142,8 +1142,7 @@ public class QRepairServiceTests extends DataCleaningTests {
 
 			for (int i = 0; i < constraints.size(); i++) {
 				Constraint constraint = constraints.get(i);
-				InfoContentTable table = m.calcInfoContentTable(constraint,
-						IndexType.HASH_MAP);
+				InfoContentTable table = m.calcInfoContentTable(constraint);
 				List<Objective> fns = constructWeightedObjective(constraint,
 						table);
 				RandomWalk rwSearch = new RandomWalk(fns,

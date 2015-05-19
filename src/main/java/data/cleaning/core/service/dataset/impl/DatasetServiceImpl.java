@@ -71,8 +71,6 @@ import data.cleaning.core.utils.Config;
 import data.cleaning.core.utils.DebugLevel;
 import data.cleaning.core.utils.DistanceMeasures;
 import data.cleaning.core.utils.HashMapIndex;
-import data.cleaning.core.utils.IndexType;
-import data.cleaning.core.utils.LuceneIndex;
 import data.cleaning.core.utils.ProdLevel;
 
 @Service("datasetService")
@@ -378,7 +376,7 @@ public class DatasetServiceImpl implements DatasetService {
 
 	@Override
 	public InfoContentTable calcInfoContentTable(Constraint constraint,
-			MasterDataset mDataset, IndexType type) {
+			MasterDataset mDataset) {
 
 		logger.log(ProdLevel.PROD, "calc info content table");
 
@@ -416,14 +414,13 @@ public class DatasetServiceImpl implements DatasetService {
 		}
 
 		return calcInfoContentTable(constraint, mDataset, colNameToDomain,
-				colNameToValFreq, patternValFreq, type);
+				colNameToValFreq, patternValFreq);
 	}
 
-	@SuppressWarnings("deprecation")
 	private InfoContentTable calcInfoContentTable(Constraint constraint,
 			MasterDataset mDataset, Map<String, Set<String>> colNameToDomain,
 			Map<String, Multiset<String>> colNameToValFreq,
-			Multiset<String> patternValFreq, IndexType type) {
+			Multiset<String> patternValFreq) {
 		Map<String, Double> cacheCellInfoContent = new HashMap<>();
 
 		InfoContentTable table = new InfoContentTable();
@@ -441,15 +438,8 @@ public class DatasetServiceImpl implements DatasetService {
 		int c = colNames.size();
 		double[][] data = new double[r][c];
 
-		// TODO: Have them implement the same interface.
-		LuceneIndex lIdx = new LuceneIndex();
 		HashMapIndex hIdx = new HashMapIndex();
-
-		if (type == IndexType.HASH_MAP) {
-			hIdx.buildIndex(records, colNames);
-		} else if (type == IndexType.LUCENE) {
-			lIdx.buildIndex(records, colNames, Field.Index.NOT_ANALYZED);
-		}
+		hIdx.buildIndex(records, colNames);
 
 		for (int col = 0; col < c; col++) {
 			String colName = colIdToName.get(col);
@@ -482,44 +472,23 @@ public class DatasetServiceImpl implements DatasetService {
 						satisfyFD = new HashSet<>(colNameToDomain.get(colName));
 
 						Set<String> doesntSatisfyFD = null;
-						if (type == IndexType.HASH_MAP) {
-							doesntSatisfyFD = hIdx.searchCol(origRec,
-									andQueryCols, negationQueryCols, colName);
-						} else if (type == IndexType.LUCENE) {
-							doesntSatisfyFD = new HashSet<>(lIdx.searchCol(
-									doesntSatisfyFDQuery(origColsToVal,
-											andQueryCols, negationQueryCols),
-									colName, -1));
-						}
+						doesntSatisfyFD = hIdx.searchCol(origRec, andQueryCols,
+								negationQueryCols, colName);
 
 						// Complexity : O(|dontSatisfyFD|)
 						satisfyFD.removeAll(doesntSatisfyFD);
 
 					} else {
-						if (type == IndexType.HASH_MAP) {
-							Set<Integer> res = hIdx.search(origRec, ants);
+						Set<Integer> res = hIdx.search(origRec, ants);
 
-							if (res.size() > 1) {
-								satisfyFD = new HashSet<>();
-								satisfyFD.add(origColsToVal.get(colName));
-							} else {
-								satisfyFD = new HashSet<>(
-										colNameToDomain.get(colName));
-							}
-
-						} else if (type == IndexType.LUCENE) {
-							Map<Long, Double> recordToDist = lIdx.search(
-									doesntSatisfyFDQuery(origColsToVal, ants,
-											null), 1);
-
-							if (recordToDist.keySet().size() > 1) {
-								satisfyFD = new HashSet<>();
-								satisfyFD.add(origColsToVal.get(colName));
-							} else {
-								satisfyFD = new HashSet<>(
-										colNameToDomain.get(colName));
-							}
+						if (res.size() > 1) {
+							satisfyFD = new HashSet<>();
+							satisfyFD.add(origColsToVal.get(colName));
+						} else {
+							satisfyFD = new HashSet<>(
+									colNameToDomain.get(colName));
 						}
+
 					}
 
 					double b = satisfyFD.size();

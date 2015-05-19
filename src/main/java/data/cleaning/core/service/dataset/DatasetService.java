@@ -53,7 +53,7 @@ public interface DatasetService {
 			char quoteChar, float simThreshold, int numIncorrectMatches);
 
 	InfoContentTable calcInfoContentTable(Constraint constraint,
-			MasterDataset mDataset, IndexType type);
+			MasterDataset mDataset);
 
 	boolean isSatisfied(Constraint constraint, List<Record> recs);
 

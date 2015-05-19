@@ -29,7 +29,6 @@ import data.cleaning.core.service.repair.impl.Candidate;
 import data.cleaning.core.service.repair.impl.Recommendation;
 import data.cleaning.core.service.repair.impl.Violations;
 import data.cleaning.core.utils.Config;
-import data.cleaning.core.utils.IndexType;
 import data.cleaning.core.utils.Pair;
 import data.cleaning.core.utils.ProdLevel;
 import data.cleaning.core.utils.Stats;
@@ -49,10 +48,14 @@ import data.cleaning.core.utils.search.SimulAnnealEpsFlexible;
 import data.cleaning.core.utils.search.SimulAnnealEpsLex;
 import data.cleaning.core.utils.search.SimulAnnealWeighted;
 
+/**
+ * Performance tests (time taken).
+ * 
+ * @author dhruvgairola
+ *
+ */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
-// -Djava.library.path=/Library/Frameworks/R.framework/Resources/library/rJava/jri/
-// RHOME : /Library/Frameworks/R.framework/Resources
 public class PRepairServiceTests extends DataCleaningTests {
 
 	@Autowired
@@ -397,8 +400,7 @@ public class PRepairServiceTests extends DataCleaningTests {
 
 			for (int i = 0; i < constraints.size(); i++) {
 				Constraint constraint = constraints.get(i);
-				InfoContentTable table = m.calcInfoContentTable(constraint,
-						IndexType.HASH_MAP);
+				InfoContentTable table = m.calcInfoContentTable(constraint);
 				Search search = getSearch(searchType, constraint, table,
 						errPerc);
 				Map<Long, Match> tidToMatch = runProtocol(search,
@@ -656,10 +658,8 @@ public class PRepairServiceTests extends DataCleaningTests {
 	// the protocol, so we create these classes for them.
 	public class Master {
 
-		public InfoContentTable calcInfoContentTable(Constraint constraint,
-				IndexType type) {
-			return datasetService.calcInfoContentTable(constraint, mDataset,
-					type);
+		public InfoContentTable calcInfoContentTable(Constraint constraint) {
+			return datasetService.calcInfoContentTable(constraint, mDataset);
 		}
 
 		public void removeInfoContentUsingCandidate(InfoContentTable table,
