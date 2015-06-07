@@ -39,7 +39,7 @@ Run above everytime before running any experiments (if code was changed since th
 
 The code was implemented using the Spring dependency injection framework. Functionality is implemented as services, while experiments are implemented as JUnit tests which call the services.
 
-In our code, the the constrained approach is referred to as the epsilon approach, the dynamic approach is referred to as the epsilon dynamic approach, the lexical approach is referred to as the epsilon lexical approach while the weighted approach is referred to as the weighted approach (no change here). 
+In our code, the the constrained approach is referred to as the epsilon approach, the dynamic approach is referred to as the epsilon dynamic approach, the hierarchical approach is referred to as the epsilon lexical approach while the weighted approach is referred to as the weighted approach (no change here). 
 
 ------------------------------------------------------------------------
 4. Replicating experiments
