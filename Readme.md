@@ -30,7 +30,12 @@ vim src/main/java/data/cleaning/core/utils/Config.java
 and add the path to your new fd file (following the examples for the IMDB and books datasets).
 
 ------------------------------------------------------------------------
-3. General comments
+3. Thesis
+------------------------------------------------------------------------
+The link for my thesis : http://macsphere.mcmaster.ca/bitstream/11375/18075/2/gairola_dhruv_201507_msc_computer_science.pdf
+
+------------------------------------------------------------------------
+4. General comments
 ------------------------------------------------------------------------
 ```
 mvn clean install
@@ -42,7 +47,7 @@ The code was implemented using the Spring dependency injection framework. Functi
 In our code, the the constrained approach is referred to as the epsilon approach, the dynamic approach is referred to as the epsilon dynamic approach, the hierarchical approach is referred to as the epsilon lexical approach while the weighted approach is referred to as the weighted approach (no change here). 
 
 ------------------------------------------------------------------------
-4. Replicating experiments
+5. Replicating experiments
 ------------------------------------------------------------------------
 
 To replicate the experiments in our paper, you need to checkout the relevant branch. Every branch has 1 commit in its commit history which is tagged with the following naming convention- "expt_\*", where "\*" represents some unique identifier. You need to have the HEAD of your checkedout branch pointing at the tagged commit. Only then can you replicate the experiemnts used in the paper. 
@@ -384,7 +389,7 @@ mvn -Dtest=QRepairServiceTests#testMatchQuality test > /dev/null & disown
 ```
 
 ------------------------------------------------------------------------
-5. Output and logging
+6. Output and logging
 ------------------------------------------------------------------------
 All logging and printing is controlled by log4j. This is useful for printing lengthy debugging output to a single log file from any Java class. 
 
