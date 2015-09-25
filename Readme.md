@@ -1,10 +1,15 @@
 ------------------------------------------------------------------------
-1. Requirements for running project
+1. Thesis
+------------------------------------------------------------------------
+Link : http://macsphere.mcmaster.ca/bitstream/11375/18075/2/gairola_dhruv_201507_msc_computer_science.pdf
+
+------------------------------------------------------------------------
+2. Requirements for running code
 ------------------------------------------------------------------------
 Java 7 64-bit, Maven 3.0.3 (m2eclipse plugin if you plan to use Eclipse)
 
 ------------------------------------------------------------------------
-2. Datasets
+3. Datasets
 ------------------------------------------------------------------------
 Datasets for our experiments (IMDB and books)
 -----------------------
@@ -28,11 +33,6 @@ If you have an FD of the form "A, B -> C", then convert this "A, B, C" and add t
 vim src/main/java/data/cleaning/core/utils/Config.java
 ```
 and add the path to your new fd file (following the examples for the IMDB and books datasets).
-
-------------------------------------------------------------------------
-3. Thesis
-------------------------------------------------------------------------
-The link for my thesis : http://macsphere.mcmaster.ca/bitstream/11375/18075/2/gairola_dhruv_201507_msc_computer_science.pdf
 
 ------------------------------------------------------------------------
 4. General comments
