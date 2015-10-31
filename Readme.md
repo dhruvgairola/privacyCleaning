@@ -1,7 +1,8 @@
 ------------------------------------------------------------------------
 1. Thesis
 ------------------------------------------------------------------------
-Link : http://macsphere.mcmaster.ca/bitstream/11375/18075/2/gairola_dhruv_201507_msc_computer_science.pdf
+I have included the thesis and the accompanying presentation in this repository. Additionally, the thesis is also hosted here :
+http://macsphere.mcmaster.ca/bitstream/11375/18075/2/gairola_dhruv_201507_msc_computer_science.pdf
 
 ------------------------------------------------------------------------
 2. Requirements for running code
